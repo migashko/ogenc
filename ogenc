@@ -1,0 +1,139 @@
+#!/bin/bash
+export LANG=en_US.UTF-8
+
+defopt="-Wall -Wextra -Wpedantic -Wformat --pedantic-errors"
+generator="g++"
+specific="warnings"
+if [[ $1 == "optimize" ]]; then
+  specific="optimize"
+  defopt="-O3 -march=native"
+  off="--off"
+fi
+
+mkdir -p gen
+mkdir -p gen/lists
+mkdir -p gen/lists/all
+
+# Находим все доступные компиляторы
+>/tmp/prefix-list.txt
+# Формат "префикс версия путь"
+>/tmp/available-compilers.txt
+
+while read -r compiler; do
+  #echo $compiler
+  [ ! -e "$compiler" ] && continue
+  headline=$($compiler --version | head -1)
+  version=$(echo "$headline" | egrep -o "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+"| egrep -o "[[:digit:]]+\.[[:digit:]]+" | head -1 )
+  prefix=$(echo "$headline" | egrep -o "g\+\+" | head -1)
+  [ -z $prefix ] && prefix=$(echo "$headline" | egrep -o "clang" | head -1)
+  [ -z $prefix ] && prefix=$(echo "$headline" | cut -f1 -d ' ' | head -1)
+
+  # список префиксов, например g++ и clang, если новый то очищаем список версий для префикса
+  grep -Fxq "$prefix" "/tmp/prefix-list.txt" || ( echo "$prefix" >> "/tmp/prefix-list.txt" && >"/tmp/$prefix-versions.txt" )
+
+  # текущаяя макс версия
+  toppred=$(cat "/tmp/$prefix-versions.txt" | sort --version-sort | tail -1)
+
+  # добавить версию для текущего, если ее нет
+  grep -Fxq "$version" "/tmp/$prefix-versions.txt" || \
+    ( echo "$version" >> "/tmp/$prefix-versions.txt" && echo "$prefix $version $compiler" >> "/tmp/available-compilers.txt" )
+
+  [[ "$prefix" == "g++" ]] && [[ "$toppred" < "$version" ]] && generator="$compiler"
+done < ./compilers.txt
+
+while read -r compline; do
+  prefix=$(echo $compline | cut -f1 -d ' ')
+  version=$(echo $compline | cut -f2 -d ' ')
+  compiler=$(echo $compline | cut -f3 -d ' ')
+  outfile="./gen/lists/all/$specific-$prefix-$version.txt"
+  if [[ ! -f "$outfile" ]]; then
+    echo "Генерация списка для $prefix-$version в $outfile"
+    echo "./c++warnings.sh -S $specific -s list -g \"$generator $defopt\" -t \"$compiler $defopt\" > $outfile "
+    ./c++warnings.sh -S $specific -s list -g "$generator $defopt" -t "$compiler $defopt" > $outfile
+#    echo "./c++warnings.sh -S $specific -g \"$generator $defopt\" -t \"$compiler $defopt\" > $outfile "
+#    ./c++warnings.sh -S $specific -g "$generator $defopt" -t "$compiler $defopt" > $outfile
+  fi
+done < /tmp/available-compilers.txt
+
+
+commonf="./gen/lists/$specific-common.txt"
+rm -f /tmp/common-options.txt
+rm -f $commonf
+echo "Общий список опций $commonf"
+for curfile in ./gen/lists/all/$specific*; do
+  if [[ -f "/tmp/common-options.txt" ]]; then
+    sort /tmp/common-options.txt > /tmp/left.txt
+    sort $curfile > /tmp/right.txt
+    comm -12 /tmp/left.txt /tmp/right.txt > $commonf
+    cp -f $commonf /tmp/common-options.txt
+  else
+    cp $curfile $commonf
+    cp $curfile /tmp/common-options.txt
+  fi
+done
+
+# список файлов опций включая созданные ранее
+ls ./gen/lists/all/$specific* | egrep -o "\-.*\-" | sort | uniq | tac > /tmp/options-sufixes.txt
+
+while read -r sufix; do
+  ls ./gen/lists/all/$specific$sufix* | sort --version-sort > /tmp/$specific${sufix}list.txt
+  cp ./gen/lists/$specific-common.txt /tmp/$specific${sufix}common.txt
+  while read -r curlst; do
+    echo "Уникальные опции для $curlst"
+    curname=$(basename $curlst)
+
+    sort $curlst > /tmp/left.txt
+    sort /tmp/$specific${sufix}common.txt > /tmp/right.txt
+    comm -23 /tmp/left.txt /tmp/right.txt > ./gen/lists/$curname
+    cat ./gen/lists/$curname >> /tmp/$specific${sufix}common.txt
+
+  done < /tmp/$specific${sufix}list.txt
+done < /tmp/options-sufixes.txt
+
+topcheg=$(ls ./gen/lists/all/$specific-g++* | sort --version-sort | grep g++ | grep -Ff /tmp/g++-versions.txt  | tail -1)
+echo $topcheg
+for curlst in ./gen/lists/$specific*; do
+  curname=$(basename $curlst | sed 's/txt/cmake/g')
+  echo "Генерация cmake для $curname генератор $generator"
+  ./c++warnings.sh -S $specific -s cmake -g "$generator" -G $topcheg -T $curlst $off > "./gen/$curname-new"
+
+  # если сгенерированный файл не пустой или еще не создан целевой файл
+  # это защита обнуления опций, например для g++-9, если генератор g++-7
+  if [ -s "./gen/$curname-new" ] || [ ! -f "./gen/$curname" ]; then
+    mv "./gen/$curname-new" "./gen/$curname"
+  else
+    # Вероятно скрипт запущен с меньшей версией компилятора g++, чем запускалось ранее,
+    # но с которым до этого не запускалось
+    # Поэтому описание опций из g++ для генерации cmake для более свежих версий недоступно
+    # "Грубо" фильтруем их из предыдущей генерации
+    cp -f ./gen/$curname ./gen/$curname-new
+    grep -Ff "$curlst" "./gen/$curname-new" > ./gen/$curname
+    rm ./gen/$curname-new
+  fi
+done
+
+echo "Генерация общего cmake"
+ocmake="./gen/$specific.cmake"
+>$ocmake
+
+echo "include(\${CMAKE_CURRENT_LIST_DIR}/$specific-common.cmake)" >> $ocmake
+echo "" >> $ocmake
+while read -r sufix; do
+  if [[ $sufix == "-g++-" ]]; then
+    compilerid="GNU"
+  elif [[ $sufix == "-clang-" ]]; then
+    compilerid="Clang"
+  else
+    compilerid="TODO"
+  fi
+
+  echo "if ( \"\${CMAKE_CXX_COMPILER_ID}\" STREQUAL \"$compilerid\" )" >> $ocmake
+    for fcmake in ./gen/$specific$sufix*.cmake; do
+      version=$(echo $fcmake | egrep -o "[0-9]+.[0-9]+")
+      echo "  if( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER $version OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL $version )"  >> $ocmake
+      echo "    include(\${CMAKE_CURRENT_LIST_DIR}/$(basename $fcmake))"  >> $ocmake
+      echo "  endif()"  >> $ocmake
+    done
+  echo "endif()"  >> $ocmake
+  echo "" >> $ocmake
+done < /tmp/options-sufixes.txt

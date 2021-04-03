@@ -1,0 +1,42 @@
+#!/bin/bash
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. "$scriptdir/ogenc-context"
+
+function usage()
+{
+  echo "Генератор опций оптимизации или предупреждений"
+  echo "  $scriptname warnings [target_compiler [generator-options [generator-compiler] ] ]"
+  echo "  $scriptname optimize  [target_compiler [generator-options [generator-compiler ] ] ]"
+  echo "Example:"
+  echo "  $scriptname warnings clang++ \"-W -Wall -Wextra -Wformat -Wpedantic\" g++"
+}
+
+specific=warnings
+
+[ ! -z $2 ] && current_compiler="$2"
+[ ! -z $3 ] && generator_options="$3"
+[ ! -z $4 ] && current_generator="$4"
+options_list_f="$cache_path/$(ogenc-versions name $current_compiler)-$specific.txt" || exit 1
+
+
+echo $current_generator $generator_options -Q --help=$specific
+$current_generator $generator_options -Q --help=$specific | grep -v "\[enabled\]" > /tmp/ogenc-current-options.txt
+>${options_list_f}
+while IFS="" read -r opt_line
+do
+  [[ -z $opt_line ]] && continue
+  #continue
+  opt=$(echo $opt_line | awk '{print $1}') 
+  #desc=$(echo $opt_line | awk '{print $2}') 
+  if $current_generator $opt test.cpp -o /dev/null 2>/dev/null; then
+    if $current_compiler $opt test.cpp -o /dev/null 2>/dev/null; then
+      log 2 "OK: $opt"
+      echo $opt >> ${options_list_f}
+    else
+      log 1 "FAIL $current_compiler: $opt_line"
+    fi
+  else
+    log 1 "FAIL $current_generator: $opt_line"
+  fi
+done < /tmp/ogenc-current-options.txt

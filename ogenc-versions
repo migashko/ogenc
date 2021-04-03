@@ -1,0 +1,48 @@
+#!/bin/bash
+export LANG=en_US.UTF-8
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. "$scriptdir/ogenc-context"
+
+function usage()
+{
+  echo "Вспомогательный скрипт для работы с версиями:"
+  echo "  compiler"
+  echo "  version"
+  echo "  prefix"
+  echo "  suffix"
+  echo "  name"
+}
+
+[ ! -z $2 ] && current_compiler="$2"
+if [ -z $current_compiler ]; then
+  echo "Ошибка: не задан текущий компилятор"
+  echo "Передайте путь к компилятору вторым аргументом или через переменную ${CXX}"
+  exit 1
+fi
+
+headline=$($current_compiler --version | head -1)
+version=$(echo "$headline" | egrep -o "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+")
+suffix=$(echo "$version" | egrep -o "[[:digit:]]+\.[[:digit:]]+")
+prefix=$(echo "$headline" | egrep -o "g\+\+" )
+[ -z $prefix ] && prefix=$(echo "$headline" | egrep -o "clang" )
+[ -z $prefix ] && prefix=$(echo "$headline" | cut -f1 -d ' ' )
+display="${prefix}-${suffix}"
+case $1 in
+  compiler )  echo $current_compiler
+              ;;
+  version )  echo $version
+              ;;
+  prefix )  echo $prefix
+              ;;
+  suffix )  echo $suffix
+              ;;
+  name )  echo $display
+              ;;
+  help | --help | -h )  usage
+              ;;
+  * ) usage
+      exit 1
+esac
+
+exit 0
