@@ -1,4 +1,0 @@
-g++ 7.5 /usr/bin/g++-7
-g++ 10.2 /usr/bin/g++
-clang 11.0 /usr/bin/clang++
-g++ 9.3 /usr/bin/g++-9

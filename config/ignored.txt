@@ -1,0 +1,11 @@
+--all-warnings
+--extra-warnings
+-W
+-Wall
+-Wextra
+-Wpedantic
+-Wformat
+--pedantic-errors
+-Ofast
+-Og
+-Os

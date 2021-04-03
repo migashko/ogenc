@@ -1,0 +1,9 @@
+-Wanalyzer-too-complex
+-Warith-conversion
+-Wc++20-compat
+-Wc++2a-compat
+-Wcomma-subscript
+-Winaccessible-base
+-Wmismatched-tags
+-Wredundant-tags
+-Wvolatile

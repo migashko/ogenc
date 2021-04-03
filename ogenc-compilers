@@ -1,0 +1,75 @@
+#!/bin/bash
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
+. "$scriptdir/ogenc-context1"
+
+function usage()
+{
+  echo "Работа со списком актуальных компиляторов:"
+  echo "  config  список компиляторов из конфигурации. Работаем только с ними и ${current_compile}"
+  echo "  list    список доступных компиляторов из конфигурации для генерации"
+  echo "  update  обновить список доступных компиляторов из конфигурации для генерации"
+  echo "  add [<path>] добавить компилятор в список конфигурации"
+}
+
+while [ "$1" != "" ]; do
+  case $1 in
+    config )  command="config"
+              ;;
+    update )  command="update"
+              ;;
+    gen | generator )  command="generator"
+              ;;
+    -h | --help ) usage
+                  exit
+                  ;;
+    * )           usage
+                  exit 1
+  esac
+  shift
+done
+
+if [ ! -f ${available_compilers_f} ] || [ $command == "update" ]; then
+  # Находим все доступные компиляторы
+  >${prefix_list_f}
+  # Формат "префикс версия путь"
+  >${available_compilers_f}
+
+  while read -r compiler; do
+    log 2 "$compiler"
+    [ ! -e "$compiler" ] && continue
+    
+    prefix=$(ogenc-versions prefix $compiler | head -1 || exit 1)
+    version=$(ogenc-versions suffix $compiler | head -1 || exit 1)
+    
+    log 1 "$prefix-$version"
+
+    # список префиксов, например g++ и clang, если новый то очищаем список версий для префикса
+    #echo "grep -Fxq $prefix ${prefix_list_f} || ( echo $prefix >> ${prefix_list_f} && >${cache_path}/$prefix-versions-raw.txt )"
+    grep -Fxq "$prefix" "${prefix_list_f}" || ( echo "$prefix" >> "${prefix_list_f}" && >"${cache_path}/$prefix-versions.txt" )
+    #grep -Fxq "$prefix" "${cache_path}/prefix-list.txt" || ( echo "$prefix" >> "${cache_path}/prefix-list.txt" && >"${cache_path}/$prefix-versions.txt" )
+
+    #cat "${cache_path}/$prefix-versions.txt" | sort --version-sort > "${cache_path}/$prefix-versions.txt"
+    
+    # текущаяя макс версия
+    toppred=$(cat "${cache_path}/$prefix-versions.txt" | sort --version-sort | tail -1)
+
+    # добавить версию для текущего, если ее нет
+    grep -Fxq "$version" "${cache_path}/$prefix-versions.txt" || \
+      ( echo "$version" >> "${cache_path}/$prefix-versions.txt" && echo "$prefix $version $compiler" >> "${available_compilers_f}" )
+
+    [[ "$prefix" == "g++" ]] && \
+    [[ "$toppred" = "`echo -e "$toppred\n$version" | sort -V | head -n1`" ]] && \
+    echo "$compiler" > "${default_generator_f}"
+    
+  done < ${compilers_list_f}
+
+  cat "${cache_path}/$prefix-versions.txt" | sort --version-sort > "${cache_path}/$prefix-versions-sort.txt"
+  mv "${cache_path}/$prefix-versions-sort.txt" "${cache_path}/$prefix-versions.txt"
+fi
+
+if [ $command == "generator" ]; then
+  cat ${default_generator_f}
+  exit 0
+fi 

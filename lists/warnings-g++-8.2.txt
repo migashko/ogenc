@@ -1,0 +1,4 @@
+-Wcast-align=strict
+-Wclass-memaccess
+-Wsuggest-attribute=cold
+-Wsuggest-attribute=malloc

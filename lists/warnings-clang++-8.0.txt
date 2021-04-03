@@ -1,0 +1,3 @@
+-Wc++17-compat
+-Wpessimizing-move
+-Wredundant-move

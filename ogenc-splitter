@@ -1,0 +1,82 @@
+#!/bin/bash
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. "$scriptdir/ogenc-context2"
+
+function usage()
+{
+  echo "Split Warnings or Optimizations options list by versions:"
+  echo "  $scriptname warnings [g++|clang++]"
+  echo "  $scriptname optimize [g++|clang++]"
+  echo "Example:"
+  echo "  $scriptname warnings clang++"
+}
+
+[ -z $1 ] && usage && exit
+[ $1 != "warnings" ] && [ $1 != "optimize" ] && usage && exit
+
+specific=$1
+pref=$2
+#[ ! -z $2 ] && concrete_prefix=("$2")
+#[ -z $concrete_prefix ] && current_prefix=$(head -1 "${prefix_list_f}")
+#[ "$current_prefix" == "clang++" ] && current_prefix="clang"
+
+#for current_prefix in ${prefix_list_f}; do
+while IFS="" read -r current_prefix
+do
+  #echo $pref
+  [ ! -z $pref ] && [ $pref != "$current_prefix" ] && continue
+  log 0 "Split for $current_prefix $specific ..."
+
+  topver=$(head -1 "${cache_path}/$current_prefix-versions.txt")
+  verlist_f="${cache_path}/$current_prefix-versions-all.txt"
+  ls $lists_all_path/$specific-$current_prefix-*.txt | egrep -o "[0-9]+(\.[0-9]+)*" | sort --version-sort > "${verlist_f}"
+  # если опции нет в этом списке, то она не доступна (для исключения устаревших опций)
+  top_list_f="${cache_path}/${current_prefix}-${specific}-top.txt"
+  # для top_list_f опции самого свежего компилятора
+  cat "$lists_all_path/$specific-$current_prefix-$(tail -1 ${verlist_f}).txt" | sort > ${top_list_f} 
+  common_list_f="${cache_path}/${current_prefix}-${specific}-common.txt"
+  rm -rf "${common_list_f}"
+  while IFS="" read -r curver
+  do
+    #max_ver=$(printf "$curver\n$topver\n" | sort -rV | head -1)
+    #if [ "$max_ver" == "$curver" ] && [ "$max_ver" != "$topver" ]; then
+    #  log 0 "Ingnore $specific lists for compiler ${current_prefix}-${curver} ($max_ver > $topver)"
+    #  continue
+    #fi
+    
+    #echo "[ $curver == $topver ] || [ $curver != $topcur ] || [ $topcur == $curver ] && continue"
+    #([ "$curver" == "$topver" ] || [ "$curver" != "$topcur" ] ) || ( [ "$topcur" == "$curver" ] && echo continue ) && continue
+    
+    log 1 "Split $curver"
+    curlist_f="$lists_all_path/$specific-$current_prefix-$curver.txt"
+    reslist_f="$lists_path/$specific-$current_prefix-$curver.txt"
+    tmp1_f="${cache_path}/tmp1.txt"
+    tmp2_f="${cache_path}/tmp2.txt"
+    #tmptmp_f="${cache_path}/tmptmp.txt"
+    cat ${curlist_f} | cut -d ' ' -f 1 | sort  > ${tmp1_f}
+    #cat ${curlist_f} | sort >${tmp1_f}
+    # удаляем опции которых нет в последней версии
+    comm --check-order -12 "${tmp1_f}" "${top_list_f}" | awk '{print $1}' | sort > ${tmp2_f}
+    #echo "=== $current_prefix-$curver ==" >> ${tmptmp_f}
+    #cat ${tmp2_f} >> ${tmptmp_f}
+    if [ -f "${common_list_f}" ]; then
+      # удаляем опции которые есть в пред версиях
+      comm --check-order -23 "${tmp2_f}" "${common_list_f}" | awk '{print $1}' > ${tmp1_f}
+      #[ $curver == "7.5" ] && echo "${tmp2_f} ${common_list_f} break" && exit
+      # сохраняем опции которые уже были
+      cat ${common_list_f} > ${tmp2_f}
+    fi
+    cat ${tmp1_f} >> ${tmp2_f}
+    cat ${tmp2_f} | sort | uniq  > ${common_list_f}
+    cp ${tmp1_f} ${reslist_f}
+    
+
+#    [ $curver == "7.5" ] && echo "${reslist_f} break" && exit
+
+  #  exit
+    
+    ##echo $curlist
+  done < "${verlist_f}"
+
+done < ${prefix_list_f}

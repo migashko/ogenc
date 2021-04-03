@@ -1,0 +1,33 @@
+#!/bin/bash
+export LANG=en_US.UTF-8
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+PATH="$PATH:$scriptdir"
+config_path="${scriptdir}/config"
+lists_path="${scriptdir}/lists"
+cmake_path="${scriptdir}/cmake/ogenc/gen"
+lists_all_path="${scriptdir}/lists/all"
+cache_path="${scriptdir}/.cache"
+
+mkdir -p ${cache_path}
+mkdir -p ${lists_all_path}
+mkdir -p ${cmake_path}
+
+command=list
+current_compiler=${CXX}
+[ -z $current_compiler ] && bash -c "g++ --version" >/dev/null 2>&1 && current_compiler=g++
+[ -z $current_compiler ] && bash -c "clang++ --version" >/dev/null 2>&1 && current_compiler=clang++
+compilers_list_f="${config_path}/compilers.txt"
+enabled_list_f="${config_path}/enabled.txt"
+disabled_list_f="${config_path}/disabled.txt"
+ignored_list_f="${config_path}/ignored.txt"
+available_compilers_f="${cache_path}/available_compilers.txt"
+default_generator_f="${cache_path}/default_generator.txt"
+prefix_list_f=${cache_path}/prefix-list.txt
+generator_options="-Wall -Wextra -Wpedantic -Wformat --pedantic-errors -O3 -Ofast"
+
+function log()
+{
+  [ -z $VERBOSE ] && return
+  (( $1 <= $VERBOSE )) && echo "$2"
+}

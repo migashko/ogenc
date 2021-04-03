@@ -1,0 +1,4 @@
+-Wattribute-alias
+-Wcatch-value
+-Wclass-conversion
+-Winit-list-lifetime

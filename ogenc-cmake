@@ -1,0 +1,121 @@
+#!/bin/bash
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. "$scriptdir/ogenc-context2"
+
+function usage()
+{
+  echo "Generator cmake-files for Warnings or Optimizations:"
+  echo "  $scriptname warnings [g++|clang++]"
+  echo "  $scriptname optimize [g++|clang++]"
+  echo "Example:"
+  echo "  $scriptname warnings clang++"
+}
+
+[ -z $1 ] && usage && exit
+[ $1 != "warnings" ] && [ $1 != "optimize" ] && usage && exit
+specific=$1
+
+
+
+#verlist_f="${cache_path}/$current_prefix-versions-all.txt"
+#ls $lists_all_path/$specific-$current_prefix-*.txt | egrep -o "[0-9]+(\.[0-9]+)*" | sort --version-sort > "${verlist_f}"
+#cat ${verlist_f}
+
+fcmake_warnings_all="${cache_path}/cmake-warnings-all.cmake"
+awk_param='{printf("ogenc_warning(%s \"",$1);for (i=2; i<NF; i++) printf $i " "; printf("%s\" ON)\n",$NF);}'
+$default_generator --help=warnings | sed 's/"/`/g' | awk "${awk_param}" | sort > ${fcmake_warnings_all}
+
+fcmake_optimize_all="${cache_path}/cmake-optimize-all.cmake"
+awk_param=${awk_param//warning/optimize}
+$default_generator --help=optimize | sed 's/"/`/g' | awk "${awk_param}" | sort > ${fcmake_optimize_all}
+
+
+for f in ${lists_path}/*.txt; do
+  #comp="g++";
+  #specific="warnings"
+  defval="ON"
+
+  if [[ $f =~ .*warnings.* ]] && [ "$specific" == "warnings" ]; then 
+    defval="ON";
+  elif [[ $f =~ .*optimize.* ]] && [ "$specific" == "optimize" ]; then 
+    defval="OFF"
+  else
+    continue; 
+  fi
+  ver=$(echo $f | egrep -o "[0-9]+(\.[0-9]+)*")
+  comp=${f##*${specific}-}
+  comp=${comp%-${ver}*}
+  [ ! -z $2 ] && [ "$comp-${ver}" != "$2" ] && continue
+ 
+  log 0 "Make cmake for $comp-${ver} $specific ..."
+
+  topver=$(head -1 "${cache_path}/$comp-versions.txt")
+  max_ver=$(printf "$ver\n$topver\n" | sort -rV | head -1)
+  if [ "$max_ver" == "$ver" ] && [ "$max_ver" != "$topver" ]; then
+    log 0 "Ingnore $specific lists for compiler ${comp}-${ver} ($ver > $topver)"
+    continue
+  fi
+  cmake_f="${cmake_path}/${specific}-${comp}-${ver}.cmake"
+
+  #ft=$f
+  ft="${cache_path}/cmake-grep-template.txt"
+  cat $f | awk '{printf("%s \n",$1) }' > $ft
+  #awk_param='{printf("ogenc_warning(%s \"",$1);for (i=2; i<NF; i++) printf $i " "; printf("%s\" ON)\n",$NF);}'
+  #[ ${specific} == "optimize" ] && awk_param=${awk_param//warning/optimize}
+  fcmake_all=${cache_path}/cmake-${specific}-all.cmake
+  cat ${fcmake_all} | grep -wFf ${ft} | grep -Ff ${enabled_list_f} > ${cmake_f}
+  [ -s ${cmake_f} ] && echo >> ${cmake_f}
+  cat ${fcmake_all} | grep -wFf ${ft} | grep -vF -f ${enabled_list_f} \
+                    | grep -vF -f ${disabled_list_f} | sed "s/ON/$defval/g" >> ${cmake_f}
+  [ -s ${cmake_f} ] && echo >> ${cmake_f}
+  cat ${fcmake_all} | grep -wFf ${ft} | grep -vF -f ${enabled_list_f} \
+                    | grep -F -f ${disabled_list_f} | sed "s/ON/OFF/g" >> ${cmake_f}
+  [ -s ${cmake_f} ] && echo >> ${cmake_f}
+  
+#  $default_generator --help=$specific | grep -wFf ${ft} | grep -Ff ${enabled_list_f} \
+#    | sed 's/"/`/g' \
+#    | awk "${awk_param}" \
+#    | sort > ${cmake_f}
+#  [ -s ${cmake_f} ] && echo >> ${cmake_f}
+#  $default_generator --help=$specific | grep -wFf ${ft} | grep -vF -f ${enabled_list_f} | grep -vF -f ${disabled_list_f} \
+#    | sed 's/"/`/g' \
+#    | awk "${awk_param}" \
+#    | sed "s/ON/$defval/g" \
+#    | sort >> ${cmake_f}
+#  echo >> ${cmake_f}
+#  awk_param=${awk_param//ON/OFF}
+#  $default_generator --help=$specific | grep -wFf ${ft} | grep -vF -f ${enabled_list_f} | grep -F -f ${disabled_list_f} \
+#    | sed 's/"/`/g' \
+#    | awk "${awk_param}" \
+#    | sort >> ${cmake_f}
+#  echo >> ${cmake_f}
+done
+
+#for curspec in "warnings" "optimize"; do
+  while IFS="" read -r comp; do
+    [ ! -z $2 ] && [ "$comp" != "$2" ] && continue
+    specific_f="$cmake_path/${specific}-$comp.cmake"
+    [[ $comp =~ .*g++.* ]] && compilerid="GNU" 
+    [[ $comp =~ .*clang.* ]] && compilerid="Clang" 
+    > ${specific_f}
+    echo "if ( \"\${CMAKE_CXX_COMPILER_ID}\" STREQUAL \"$compilerid\" )" >> ${specific_f}
+    #for curcmake in ${cmake_path}/${specific}-${comp}-*.cmake ; do
+    #  if [ -f ${curcmake} ]; then
+    
+    verlist_f="${cache_path}/$comp-versions-all.txt"
+    ls $cmake_path/${specific}-$comp-*.cmake 2> /dev/null | egrep -o "[0-9]+(\.[0-9]+)*" | sort --version-sort > "${verlist_f}"
+
+    while IFS="" read -r ver; do
+
+        #ver=$(echo ${curcmake} | egrep -o "[0-9]+(\.[0-9]+)*")
+        echo "  if( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER $ver \
+OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL $ver )" >> ${specific_f}
+        echo "    include(\${CMAKE_CURRENT_LIST_DIR}/${specific}-$comp-$ver.cmake)"  >> ${specific_f}
+        echo "  endif()"  >> ${specific_f}
+    done < ${verlist_f}
+
+    echo "endif()"  >> ${specific_f}
+    echo "" >> ${specific_f}
+  done < ${prefix_list_f}    
+#done
