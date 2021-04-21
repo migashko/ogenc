@@ -19,8 +19,8 @@ specific=$1
 
 # по умолчанию определены в ogenc-context
 [ ! -z $2 ] && current_compiler="$2"
-[ ! -z $3 ] && generator_options="$3"
-[ ! -z $4 ] && default_generator="$4"
+[ ! -z $3 ] && default_generator="$3"
+[ ! -z $4 ] && generator_options="$4"
 
 # все опции сгенерированые компилятором-генератором
 raw_options_list_f="$cache_path/raw-$(ogenc-versions name $current_compiler)-$specific.txt" || exit 1
@@ -31,7 +31,7 @@ fail_options_list_f="$cache_path/fail-$(ogenc-versions name $current_compiler)-$
 # опции для целевого компилятора с учетом списка ignored.txt
 options_list_f="$cache_path/$specific-$(ogenc-versions name $current_compiler).txt" || exit 1
 
-log 0 "Generate $specific: $default_generator $generator_options -Q --help=$specific ..."
+log 0 "Generate $specific: $default_generator $generator_options -Q --help=$specific for $current_compiler ..."
 # Генерируем список опций которые не помечены как [enabled]
 $default_generator $generator_options -Q --help=$specific | grep -v "\[enabled\]" > "${raw_options_list_f}"
 >"${all_options_list_f}"
