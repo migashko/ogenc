@@ -1,0 +1,31 @@
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: test.cpp, Line: 1, Column: 0 }
+Function:        main
+Args:
+  - NumStackBytes:   '8'
+  - String:          ' stack bytes in function'
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        main
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      ''
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '7'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: test.cpp, Line: 1, Column: 0 }
+Function:        main
+Args:
+  - NumInstructions: '7'
+  - String:          ' instructions in function'
+...

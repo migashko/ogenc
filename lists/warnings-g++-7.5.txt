@@ -3,6 +3,7 @@
 -Wcomments
 -Wconversion-null
 -Wdelete-incomplete
+-Whsa
 -Wimplicit-fallthrough
 -Winherited-variadic-ctor
 -Winvalid-offsetof
@@ -19,7 +20,6 @@
 -Wno-vla-larger-than
 -Wplacement-new
 -Wpmf-conversions
--Wscalar-storage-order
 -Wshadow-compatible-local
 -Wshadow=global
 -Wshadow-local

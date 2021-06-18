@@ -1,0 +1,9 @@
+-ffast-math
+-fmath-errno
+-fno-threadsafe-statics
+-frounding-math
+-frtti
+-fsave-optimization-record
+-fsigned-zeros
+-ftrapping-math
+-ftree-vectorize

@@ -1,0 +1,7 @@
+-Wctad-maybe-unsupported
+-Wdeprecated-enum-enum-conversion
+-Wdeprecated-enum-float-conversion
+-Wmismatched-new-delete
+-Wobjc-root-class
+-Wrange-loop-construct
+-Wvexing-parse

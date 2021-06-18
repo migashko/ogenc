@@ -1,0 +1,14 @@
+-ffast-math
+-fgraphite
+-fgraphite-identity
+-flive-patching
+-floop-nest-optimize
+-floop-parallelize-all
+-fmath-errno
+-fno-threadsafe-statics
+-fprofile-reorder-functions
+-frtti
+-fsigned-zeros
+-fstack-clash-protection
+-ftrapping-math
+-ftree-vectorize

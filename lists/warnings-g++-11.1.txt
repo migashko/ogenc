@@ -1,0 +1,7 @@
+-Warray-parameter
+-Wctad-maybe-unsupported
+-Wdeprecated-enum-enum-conversion
+-Wdeprecated-enum-float-conversion
+-Wmismatched-new-delete
+-Wrange-loop-construct
+-Wvexing-parse
