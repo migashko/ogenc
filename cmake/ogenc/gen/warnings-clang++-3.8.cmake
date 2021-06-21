@@ -1,6 +1,6 @@
 ogenc_warning(-Wc++11-compat "Warn about C++ constructs whose meaning differs between ISO C++ 1998 and ISO C++ 2011." ON)
 ogenc_warning(-Wc++14-compat "Warn about C++ constructs whose meaning differs between ISO C++ 2011 and ISO C++ 2014." ON)
-ogenc_warning(-Wc++1z-compat "Same as -Wc++17-compat. Use the latter option instead." ON)
+ogenc_warning(-Wc++1z-compat "Same as -Wc++17-compat." ON)
 ogenc_warning(-Wdate-time "Warn about __TIME__, __DATE__ and __TIMESTAMP__ usage." ON)
 ogenc_warning(-Wdouble-promotion "Warn about implicit conversions from `float` to `double`." ON)
 ogenc_warning(-Wfloat-conversion "Warn for implicit type conversions that cause loss of floating point precision." ON)

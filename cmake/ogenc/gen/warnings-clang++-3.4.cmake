@@ -1,4 +1,4 @@
-ogenc_warning(-Wc++0x-compat "Same as -Wc++11-compat. Use the latter option instead." ON)
+ogenc_warning(-Wc++0x-compat "Same as -Wc++11-compat." ON)
 ogenc_warning(-Wcast-align "Warn about pointer casts which increase alignment." ON)
 ogenc_warning(-Wcast-qual "Warn about casts which discard qualifiers." ON)
 ogenc_warning(-Wconversion "Warn for implicit type conversions that may change a value." ON)
