@@ -1,3 +1,6 @@
+ogenc_optimize(-fbranch-target-load-optimize2 "Perform branch target load optimization after prologue / epilogue threading." OFF)
+ogenc_optimize(-fbranch-target-load-optimize "Perform branch target load optimization before prologue / epilogue threading." OFF)
+ogenc_optimize(-fbtr-bb-exclusive "Restrict target load migration not to re-use registers in any basic block." OFF)
 ogenc_optimize(-fconserve-stack "Do not perform optimizations increasing noticeably stack usage." OFF)
 ogenc_optimize(-fcx-fortran-rules "Complex multiplication and division follow Fortran rules." OFF)
 ogenc_optimize(-fcx-limited-range "Omit range reduction step when performing complex division." OFF)

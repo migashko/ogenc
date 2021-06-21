@@ -1,0 +1,5 @@
+-ffast-math
+-fmath-errno
+-fsigned-zeros
+-ftrapping-math
+-ftree-vectorize

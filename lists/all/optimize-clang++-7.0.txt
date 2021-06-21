@@ -1,0 +1,17 @@
+-falign-functions
+-fexceptions
+-ffast-math
+-fmath-errno
+-fnon-call-exceptions
+-fpack-struct
+-fshort-wchar
+-fsigned-zeros
+-fstack-protector
+-fstack-protector-all
+-fstack-protector-strong
+-fstrict-enums
+-ftrapping-math
+-ftrapv
+-ftree-vectorize
+-funroll-loops
+-fwrapv
