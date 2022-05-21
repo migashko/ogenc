@@ -21,3 +21,4 @@
 -Wno-larger-than
 -Wno-stack-usage 
 -Wno-vla-larger-than
+-Wlong-long

@@ -8,7 +8,6 @@ ogenc_warning(-Wdangling-pointer "Warn for uses of pointers to auto variables wh
 ogenc_warning(-Wexceptions "Warn when an exception handler is shadowed by another handler." ON)
 ogenc_warning(-Winterference-size "Warn about nonsensical values of --param destructive-interference-size or constructive-interference-size." ON)
 ogenc_warning(-Winvalid-imported-macros "Warn about macros that have conflicting header units definitions." ON)
-ogenc_warning(-Wlong-long "Do not warn about using `long long` when -pedantic." ON)
 ogenc_warning(-Wmissing-requires "Warn about likely missing requires keyword." ON)
 ogenc_warning(-Wmissing-template-keyword "Warn when the template keyword is missing after a member access token in a dependent member access" ON)
 ogenc_warning(-Wnarrowing "Warn about narrowing conversions within { } that are ill-formed in C++11." ON)
@@ -18,4 +17,5 @@ ogenc_warning(-Wshift-negative-value "Warn if left shifting a negative value." O
 ogenc_warning(-Wtrivial-auto-var-init "Warn about cases where -ftrivial-auto-var-init cannot initialize an auto variable." ON)
 ogenc_warning(-Wvla "Warn if a variable length array is used." ON)
 
+ogenc_warning(-Wlong-long "Do not warn about using `long long` when -pedantic." OFF)
 
