@@ -10,6 +10,7 @@
 -Wmissing-prototypes
 -Wnested-externs
 -Wnoexcept-type
+-Wold-style-definition
 -Wselector
 -Wshift-overflow
 -Wstrict-aliasing

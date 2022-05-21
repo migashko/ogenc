@@ -1,0 +1,14 @@
+-fdelete-null-pointer-checks
+-ffold-simple-inlines
+-fharden-compares
+-fharden-conditional-branches
+-fprefetch-loop-arrays
+-frename-registers
+-fsemantic-interposition
+-fstrict-volatile-bitfields
+-ftree-cselim
+-ftree-loop-if-convert
+-fvar-tracking-assignments
+-fweb
+-gstatement-frontiers
+-Oz

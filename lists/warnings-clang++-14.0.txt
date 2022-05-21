@@ -1,0 +1,11 @@
+-Wc++11-extensions
+-Wc++14-extensions
+-Wc++17-extensions
+-Wc++20-extensions
+-Wdeclaration-after-statement
+-Wexceptions
+-Wlong-long
+-Wnarrowing
+-Wno-frame-larger-than
+-Wshift-negative-value
+-Wvla
