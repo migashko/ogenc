@@ -4,7 +4,7 @@ ogenc_optimize(-fharden-compares "Harden conditionals not used in branches, chec
 ogenc_optimize(-fharden-conditional-branches "Harden conditional branches by checking reversed conditions." OFF)
 ogenc_optimize(-fprefetch-loop-arrays "Generate prefetch instructions, if available, for arrays in loops." OFF)
 ogenc_optimize(-frename-registers "Perform a register renaming optimization pass." OFF)
-ogenc_optimize(-fsemantic-interposition "Allow interposing function (or variables) by ones with different semantics (or initializer) respectively by" OFF)
+ogenc_optimize(-fsemantic-interposition "Allow interposing function (or variables) by ones with different semantics (or initializer) respectively by dynamic linker." OFF)
 ogenc_optimize(-fstrict-volatile-bitfields "Force bitfield accesses to match their type width." OFF)
 ogenc_optimize(-ftree-cselim "Transform condition stores into unconditional ones." OFF)
 ogenc_optimize(-ftree-loop-if-convert "Convert conditional jumps in innermost loops to branchless equivalents." OFF)
