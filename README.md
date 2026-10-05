@@ -34,7 +34,7 @@
 | `EXTRA_WARNINGS` | ON | `-Wextra -Wpedantic -Wformat -pedantic-errors` |
 | `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
 | `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
-| `APOCALYPTIC_WARNINGS` | OFF | Включает `PARANOID_WARNINGS`; сигнал «гнать paranoid и на зависимостях» для вашей обёртки `add_subdirectory`, не сам обход дерева |
+| `APOCALYPTIC_WARNINGS` | OFF | См. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings) |
 | `PARANOID_OPTIMIZE` | OFF | Подключить optimize-инфраструктуру ogenc |
 | `OGENC_OPTIMIZE` | OFF | Синоним / условие для `target_ogenc_optimize` |
 
@@ -98,8 +98,8 @@ cmake --build build
 
 - `EXTRA_WARNINGS` по умолчанию **включён**. Чтобы остаться только на `-Werror -Wall`, передайте `-DEXTRA_WARNINGS=OFF`.
 - `PARANOID_WARNINGS` и `OGENC_WARNINGS` — синонимы.
-- `APOCALYPTIC_WARNINGS=ON` включает `PARANOID_WARNINGS`. Сам ogenc **не** обходит `add_subdirectory`. Флаг рассчитан на обёртку в вашем проекте: по умолчанию перед подключением зависимости выключать paranoid (его CI уже прогнал), а при Apocalyptic — оставлять включённым.
 - `DISABLE_WARNINGS=ON` отключает всё, что навешивает `target_ogenc_warnings`, независимо от остальных флагов.
+- Для субмодулей и сторонних библиотек см. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings).
 
 Те же опции можно задать переменными окружения **до** первого конфигурирования CMake (если соответствующая CMake-переменная ещё не задана):
 
@@ -107,6 +107,57 @@ cmake --build build
 export PARANOID_WARNINGS=ON
 cmake -S . -B build
 ```
+
+---
+
+## APOCALYPTIC_WARNINGS
+
+Для **своего** кода обычно включают `-DPARANOID_WARNINGS=ON`. Для **субмодулей и сторонних библиотек** полный paranoid часто избыточен: чужой код уже прогоняют в своём CI, а у вас он только раздувает лог и ломает сборку.
+
+Рекомендуемое поведение:
+
+1. По умолчанию перед `add_subdirectory` / подключением зависимости **выключать** `PARANOID_WARNINGS` (и `OGENC_WARNINGS`).
+2. Если нужно прогнать paranoid и по зависимостям — собрать с `-DAPOCALYPTIC_WARNINGS=ON`.
+
+Сам ogenc дерево `add_subdirectory` **не** обходит. `APOCALYPTIC_WARNINGS` только включает `PARANOID_WARNINGS` и служит сигналом для **вашей** обёртки.
+
+Пример:
+
+```cmake
+function(my_add_subdirectory)
+  cmake_parse_arguments(arg "WARNINGS" "PATH" "" ${ARGN})
+  if (NOT arg_PATH)
+    message(FATAL_ERROR "PATH is required")
+  endif()
+
+  # По умолчанию не тащим paranoid в чужой код.
+  # Apocalyptic — принудительно оставить paranoid и для субмодуля.
+  if (NOT APOCALYPTIC_WARNINGS AND NOT arg_WARNINGS)
+    set(PARANOID_WARNINGS OFF)
+    set(OGENC_WARNINGS OFF)
+  endif()
+
+  add_subdirectory("${PROJECT_SOURCE_DIR}/${arg_PATH}")
+endfunction()
+
+# обычная сборка: свой код с paranoid, зависимость — без
+my_add_subdirectory(PATH third_party/foo)
+
+# зависимость тоже под paranoid (например, разовый прогон)
+my_add_subdirectory(PATH third_party/foo WARNINGS)
+```
+
+Сборка:
+
+```bash
+# свой проект с paranoid; субмодули без (если обёртка как выше)
+cmake -S . -B build -DPARANOID_WARNINGS=ON
+
+# paranoid и для зависимостей
+cmake -S . -B build -DAPOCALYPTIC_WARNINGS=ON
+```
+
+`-DAPOCALYPTIC_WARNINGS=ON` сам по себе включает `PARANOID_WARNINGS` в корне; смысл флага — не отключать его в обёртках при подключении субмодулей.
 
 ---
 
