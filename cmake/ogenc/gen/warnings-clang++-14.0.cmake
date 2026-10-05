@@ -9,5 +9,5 @@ ogenc_warning(-Wshift-negative-value "Warn if left shifting a negative value." O
 ogenc_warning(-Wvla "Warn if a variable length array is used." ON)
 
 ogenc_warning(-Wlong-long "Do not warn about using `long long` when -pedantic." OFF)
-ogenc_warning(-Wno-frame-larger-than "Disable -Wframe-larger-than= warning. Equivalent to -Wframe-larger-than=<SIZE_MAX> or larger. Same as -Wframe-larger-than=." OFF)
+ogenc_warning(-Wno-frame-larger-than "Disable -Wframe-larger-than= warning. Equivalent to -Wframe-larger-than=<SIZE_MAX> or" OFF)
 

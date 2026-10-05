@@ -1,0 +1,16 @@
+-Wanalyzer-symbol-too-complex
+-Warray-bounds
+-Wc++26-extensions
+-Wcast-user-defined
+-Wchanges-meaning
+-Wdangling-reference
+-Welaborated-enum-base
+-Wflex-array-member-not-at-end
+-Wglobal-module
+-Winvalid-constexpr
+-Winvalid-utf8
+-Wnrvo
+-Wself-move
+-Wsuggest-attribute=returns_nonnull
+-Wtemplate-id-cdtor
+-Wunused-parameter

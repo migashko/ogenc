@@ -1,0 +1,10 @@
+-Warray-bounds
+-Warray-parameter
+-Wc++23-extensions
+-Wc++26-extensions
+-Welaborated-enum-base
+-Winvalid-constexpr
+-Winvalid-utf8
+-Wmissing-variable-declarations
+-Wself-move
+-Wunused-parameter

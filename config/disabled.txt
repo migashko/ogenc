@@ -22,3 +22,10 @@
 -Wno-stack-usage 
 -Wno-vla-larger-than
 -Wlong-long
+-Wc++0x-compat
+-Wc++11-compat
+-Wc++14-compat
+-Wc++17-compat
+-Wc++1z-compat
+-Wc++20-compat
+-Wc++2a-compat

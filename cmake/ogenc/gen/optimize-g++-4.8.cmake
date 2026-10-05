@@ -11,7 +11,7 @@ ogenc_optimize(-fmodulo-sched "Perform SMS based modulo scheduling before the fi
 ogenc_optimize(-fnon-call-exceptions "Support synchronous non-call exceptions." OFF)
 ogenc_optimize(-fnothrow-opt "Treat a throw() exception specification as noexcept to improve code size." OFF)
 ogenc_optimize(-fpack-struct "Pack structure members together without holes." OFF)
-ogenc_optimize(-freschedule-modulo-scheduled-loops "Enable/Disable the traditional scheduling in loops that already passed modulo scheduling." OFF)
+ogenc_optimize(-freschedule-modulo-scheduled-loops "Enable/Disable the traditional scheduling in loops that already passed modulo" OFF)
 ogenc_optimize(-frounding-math "Disable optimizations that assume default FP rounding behavior." OFF)
 ogenc_optimize(-fsched2-use-superblocks "If scheduling post reload, do superblock scheduling." OFF)
 ogenc_optimize(-fsched-pressure "Enable register pressure sensitive insn scheduling." OFF)

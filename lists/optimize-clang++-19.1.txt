@@ -1,0 +1,2 @@
+-fcx-fortran-rules
+-funwind-tables

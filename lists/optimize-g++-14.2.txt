@@ -1,0 +1,7 @@
+-fhardcfr-check-exceptions
+-fhardcfr-check-returning-calls
+-fhardcfr-skip-leaf
+-fharden-control-flow-redundancy
+-finline-stringops
+-funreachable-traps
+-funwind-tables
