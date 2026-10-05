@@ -1,14 +1,15 @@
 #!/bin/bash
 
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
 . "$scriptdir/ogenc-context2"
 
 function usage()
 {
-  echo "Split Warnings or Optimizations options list by versions:"
+  echo "Разделение списков предупреждений или оптимизаций по версиям:"
   echo "  $scriptname warnings [g++|clang++]"
   echo "  $scriptname optimize [g++|clang++]"
-  echo "Example:"
+  echo "Пример:"
   echo "  $scriptname warnings clang++"
 }
 
@@ -26,7 +27,7 @@ while IFS="" read -r current_prefix
 do
   #echo $pref
   [ ! -z $pref ] && [ $pref != "$current_prefix" ] && continue
-  log 0 "Split for $current_prefix $specific ..."
+  log 0 "Разделяю $specific для $current_prefix ..."
 
   topver=$(head -1 "${cache_path}/$current_prefix-versions.txt")
   verlist_f="${cache_path}/$current_prefix-versions-all.txt"
@@ -41,14 +42,14 @@ do
   do
     #max_ver=$(printf "$curver\n$topver\n" | sort -rV | head -1)
     #if [ "$max_ver" == "$curver" ] && [ "$max_ver" != "$topver" ]; then
-    #  log 0 "Ingnore $specific lists for compiler ${current_prefix}-${curver} ($max_ver > $topver)"
+    #  log 0 "Пропускаю списки $specific для компилятора ${current_prefix}-${curver} ($max_ver > $topver)"
     #  continue
     #fi
     
     #echo "[ $curver == $topver ] || [ $curver != $topcur ] || [ $topcur == $curver ] && continue"
     #([ "$curver" == "$topver" ] || [ "$curver" != "$topcur" ] ) || ( [ "$topcur" == "$curver" ] && echo continue ) && continue
     
-    log 1 "Split $curver"
+    log 1 "Слой $curver"
     curlist_f="$lists_all_path/$specific-$current_prefix-$curver.txt"
     reslist_f="$lists_path/$specific-$current_prefix-$curver.txt"
     tmp1_f="${cache_path}/tmp1.txt"

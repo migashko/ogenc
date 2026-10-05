@@ -1,7 +1,7 @@
 #
-# Author: Vladimir Migashko <migashko@gmail.com>, (C) 2021
+# Автор: Vladimir Migashko <migashko@gmail.com>, (C) 2021-2026
 #
-# Copyright: See COPYING file that comes with this distribution
+# SPDX-License-Identifier: MIT
 #
 # https://github.com/migashko/ogenc
 # 
@@ -14,13 +14,21 @@ macro(ogenc_env OPT_NAME TEXT VALUE )
   endif()
 endmacro()
 
-ogenc_env(EXTRA_WARNINGS "Extra warnings level" ON)
-ogenc_env(DISABLE_WARNINGS "Disable warnings (also ignore EXTRA_WARNINGS and PARANOID_WARNINGS)" OFF)
-ogenc_env(PARANOID_WARNINGS "Paranoid warnings level" OFF)
-ogenc_env(OGENC_WARNINGS "Paranoid warnings level" OFF)
-ogenc_env(PARANOID_OPTIMIZE "Paranoid optimize level" OFF)
-ogenc_env(OGENC_OPTIMIZE "Paranoid optimize level" OFF)
-ogenc_env(APOCALYPTIC_WARNINGS "Paranoid warnings level include submodules" OFF)
+ogenc_env(EXTRA_WARNINGS "Уровень Extra (-Wextra -Wpedantic …)" ON)
+ogenc_env(DISABLE_WARNINGS "Отключить предупреждения ogenc (игнорирует EXTRA_WARNINGS и PARANOID_WARNINGS)" OFF)
+ogenc_env(PARANOID_WARNINGS "Параноидальный уровень предупреждений" OFF)
+ogenc_env(OGENC_WARNINGS "Синоним PARANOID_WARNINGS" OFF)
+ogenc_env(PARANOID_OPTIMIZE "Параноидальный уровень оптимизаций" OFF)
+ogenc_env(OGENC_OPTIMIZE "Синоним PARANOID_OPTIMIZE" OFF)
+# Рубильник родительского проекта: гнать paranoid и на зависимостях.
+# Сам ogenc дерево add_subdirectory() не обходит. Типичная обёртка:
+#   if (NOT APOCALYPTIC_WARNINGS)
+#     set(PARANOID_WARNINGS OFF)
+#     set(OGENC_WARNINGS OFF)
+#   endif()
+#   add_subdirectory(...)
+# В обычном CI Apocalyptic выключен: чужой код остаётся на Extra/Wall.
+ogenc_env(APOCALYPTIC_WARNINGS "Включить PARANOID_WARNINGS (в т.ч. для зависимостей, через обёртку add_subdirectory)" OFF)
 
 if (APOCALYPTIC_WARNINGS)
   set(PARANOID_WARNINGS ON)

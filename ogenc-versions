@@ -8,7 +8,7 @@ scriptname=$(basename -- "${BASH_SOURCE[0]}")
 function usage()
 {
   echo "Вспомогательный скрипт для работы с версиями:"
-  echo "  $scriptname format [compiler_path] "
+  echo "  $scriptname формат [путь_к_компилятору]"
   echo "Допустимые форматы:"
   echo "  compiler"
   echo "  version"
@@ -16,7 +16,7 @@ function usage()
   echo "  suffix"
   echo "  name"
   echo "  all"
-  echo "Example:"
+  echo "Пример:"
   echo "  ./$scriptname compiler /usr/bin/clang++"
   echo "  clang++"
   
@@ -49,11 +49,11 @@ case $1 in
               ;;
   name )  echo $display
               ;;
-  all )  echo "compiler:" $(basename "$current_compiler")
-         echo "version:" $version
-         echo "prefix:" $prefix
-         echo "suffix:" $suffix
-         echo "name:" $display
+  all )  echo "компилятор:" $(basename "$current_compiler")
+         echo "версия:" $version
+         echo "префикс:" $prefix
+         echo "суффикс:" $suffix
+         echo "имя:" $display
               ;;
   help | --help | -h )  usage
               ;;

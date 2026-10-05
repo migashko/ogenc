@@ -8,7 +8,8 @@
 2. По умолчанию выключить заведомо шумные/бесполезные.
 3. Подключить это к таргетам проекта одной функцией.
 
-Репозиторий: https://github.com/migashko/ogenc
+Репозиторий: https://github.com/migashko/ogenc  
+Лицензия: MIT (см. `LICENSE`).
 
 ---
 
@@ -73,7 +74,7 @@ cmake --build build
 
 - `EXTRA_WARNINGS` по умолчанию **включён**. Чтобы остаться только на `-Werror -Wall`, передайте `-DEXTRA_WARNINGS=OFF`.
 - `PARANOID_WARNINGS` и `OGENC_WARNINGS` — синонимы.
-- `APOCALYPTIC_WARNINGS=ON` просто включает `PARANOID_WARNINGS` (удобно прокидывать «максимум строгости» в дерево с зависимостями).
+- `APOCALYPTIC_WARNINGS=ON` включает `PARANOID_WARNINGS`. Сам ogenc **не** обходит `add_subdirectory`. Флаг рассчитан на обёртку в вашем проекте: по умолчанию перед подключением зависимости выключать paranoid (его CI уже прогнал), а при Apocalyptic — оставлять включённым.
 - `DISABLE_WARNINGS=ON` отключает всё, что навешивает `target_ogenc_warnings`, независимо от остальных флагов.
 
 Те же опции можно задать переменными окружения **до** первого конфигурирования CMake (если соответствующая CMake-переменная ещё не задана):
@@ -282,7 +283,7 @@ export VERBOSE=1
 *.opt.yaml             # clang++
 ```
 
-Их можно удалять — на работу ogenc они не влияют. Имеет смысл добавить такие шаблоны в `.gitignore`.
+Их можно удалять — на работу ogenc они не влияют. Шаблоны уже есть в `.gitignore`.
 
 ---
 
@@ -306,7 +307,7 @@ export VERBOSE=1
 | `EXTRA_WARNINGS` | ON | `-Wextra -Wpedantic -Wformat -pedantic-errors` |
 | `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
 | `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
-| `APOCALYPTIC_WARNINGS` | OFF | Включает `PARANOID_WARNINGS` |
+| `APOCALYPTIC_WARNINGS` | OFF | Включает `PARANOID_WARNINGS`; сигнал «гнать paranoid и на зависимостях» для вашей обёртки `add_subdirectory`, не сам обход дерева |
 | `PARANOID_OPTIMIZE` | OFF | Подключить optimize-инфраструктуру ogenc |
 | `OGENC_OPTIMIZE` | OFF | Синоним / условие для `target_ogenc_optimize` |
 

@@ -1,14 +1,15 @@
 #!/bin/bash
 
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
 . "$scriptdir/ogenc-context2"
 
 function usage()
 {
-  echo "Generator cmake-files for Warnings or Optimizations:"
+  echo "Генератор cmake-файлов для предупреждений или оптимизаций:"
   echo "  $scriptname warnings [g++|clang++]"
   echo "  $scriptname optimize [g++|clang++]"
-  echo "Example:"
+  echo "Пример:"
   echo "  $scriptname warnings clang++"
 }
 
@@ -83,12 +84,12 @@ for f in ${lists_path}/*.txt; do
   comp=${comp%-${ver}*}
   [ ! -z $2 ] && [ "$comp-${ver}" != "$2" ] && continue
  
-  log 0 "Make cmake for $comp-${ver} $specific ..."
+  log 0 "Создаю cmake для $comp-${ver} $specific ..."
 
   topver=$(head -1 "${cache_path}/$comp-versions.txt")
   max_ver=$(printf "$ver\n$topver\n" | sort -rV | head -1)
   if [ "$max_ver" == "$ver" ] && [ "$max_ver" != "$topver" ]; then
-    log 0 "Ingnore $specific lists for compiler ${comp}-${ver} ($ver > $topver)"
+    log 0 "Пропускаю списки $specific для компилятора ${comp}-${ver} ($ver > $topver)"
     continue
   fi
   cmake_f="${cmake_path}/${specific}-${comp}-${ver}.cmake"

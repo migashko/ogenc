@@ -7,10 +7,10 @@ scriptname=$(basename -- "${BASH_SOURCE[0]}")
 function usage()
 {
   echo "Работа со списком актуальных компиляторов:"
-  echo "  config  список компиляторов из конфигурации. Работаем только с ними и ${current_compile}"
-  echo "  list    список доступных компиляторов из конфигурации для генерации"
-  echo "  update  обновить список доступных компиляторов из конфигурации для генерации"
-  echo "  add [<path>] добавить компилятор в список конфигурации"
+  echo "  config  список компиляторов из конфигурации"
+  echo "  list    доступные компиляторы из конфигурации для генерации"
+  echo "  update  обновить список доступных компиляторов из конфигурации"
+  echo "  add [<путь>] добавить компилятор в список конфигурации"
 }
 
 while [ "$1" != "" ]; do
@@ -52,7 +52,7 @@ if [ ! -f ${available_compilers_f} ] || [ $command == "update" ]; then
 
     #cat "${cache_path}/$prefix-versions.txt" | sort --version-sort > "${cache_path}/$prefix-versions.txt"
     
-    # текущаяя макс версия
+    # текущая максимальная версия
     toppred=$(cat "${cache_path}/$prefix-versions.txt" | sort --version-sort | tail -1)
 
     # добавить версию для текущего, если ее нет
