@@ -1,0 +1,6 @@
+#!/bin/bash
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+. "$scriptdir/ogenc-context1"
+
+ogenc_ensure_compilers
+ogenc_load_default_generator

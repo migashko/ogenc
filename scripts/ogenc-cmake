@@ -1,0 +1,156 @@
+#!/bin/bash
+set -euo pipefail
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
+. "$scriptdir/ogenc-context1"
+ogenc_ensure_compilers
+
+usage()
+{
+  echo "Генератор cmake-файлов для предупреждений или оптимизаций:"
+  echo "  $scriptname warnings [g++|clang++]"
+  echo "  $scriptname optimize [g++|clang++]"
+  echo "Пример:"
+  echo "  $scriptname warnings clang++"
+}
+
+gen_help_cmake() {
+    local generator="$1"
+    local kind="$2"
+    local out="$3"
+    local func="${kind%s}"
+
+    "${generator}" "--help=${kind}" \
+        | sed 's/"/`/g' \
+        | awk '
+            {
+                line = $0
+                sub(/^[ \t]+/, "", line)
+
+                n = split(line, f, /[ \t]+/)
+
+                if (f[1] ~ /^-/) {
+                    if (prev != "") print prev
+                    prev = line
+                } else if (prev != "") {
+                    prev = prev " " line
+                }
+            }
+            END { if (prev != "") print prev }
+          ' \
+        | awk -v func="${func}" '
+            {
+                printf("ogenc_%s(%s \"", func, $1)
+                for (i = 2; i < NF; i++) printf "%s ", $i
+                printf("%s\" ON)\n", $NF)
+            }
+          ' \
+        | sort -u > "${out}"
+}
+
+if [[ -z "${1:-}" ]] || { [[ "$1" != "warnings" ]] && [[ "$1" != "optimize" ]]; }; then
+  usage
+  exit 1
+fi
+specific=$1
+filter_comp="${2:-}"
+
+gen_help_cmake "${default_generator}" warnings  "${cache_path}/cmake-warnings-all.cmake"
+gen_help_cmake "${default_generator}" optimize  "${cache_path}/cmake-optimize-all.cmake"
+
+shopt -s nullglob
+list_files=( "${lists_path}"/*.txt )
+shopt -u nullglob
+
+for f in "${list_files[@]}"; do
+  defval="ON"
+
+  if [[ "${f}" == *warnings* ]] && [[ "${specific}" == "warnings" ]]; then
+    defval="ON"
+  elif [[ "${f}" == *optimize* ]] && [[ "${specific}" == "optimize" ]]; then
+    defval="OFF"
+  else
+    continue
+  fi
+  ver=$(echo "${f}" | grep -Eo "[0-9]+(\.[0-9]+)*")
+  comp=${f##*"${specific}"-}
+  comp=${comp%-${ver}*}
+  [[ -n "${filter_comp}" && "${comp}-${ver}" != "${filter_comp}" ]] && continue
+
+  log 0 "Создаю cmake для ${comp}-${ver} ${specific} ..."
+
+  versions_f="${cache_path}/${comp}-versions.txt"
+  if [[ ! -f "${versions_f}" ]]; then
+    log 0 "Нет ${versions_f}, пропускаю ${comp}-${ver}"
+    continue
+  fi
+  topver=$(sort --version-sort "${versions_f}" | tail -1)
+  max_ver=$(printf "%s\n%s\n" "${ver}" "${topver}" | sort -V | tail -1)
+  if [[ "${max_ver}" == "${ver}" && "${max_ver}" != "${topver}" ]]; then
+    log 0 "Пропускаю списки ${specific} для компилятора ${comp}-${ver} (${ver} > ${topver})"
+    continue
+  fi
+  cmake_f="${cmake_path}/${specific}-${comp}-${ver}.cmake"
+
+  ft="${cache_path}/cmake-grep-template.txt"
+  awk '{printf("%s \n",$1) }' "${f}" > "${ft}"
+  fcmake_all="${cache_path}/cmake-${specific}-all.cmake"
+
+  : > "${cmake_f}"
+  # Пустой enabled.txt: grep -Ff сразу выходит → SIGPIPE (141) у писателя в пайпе.
+  if [[ -s "${enabled_list_f}" ]]; then
+    ogenc_grep -wFf "${ft}" "${fcmake_all}" | ogenc_grep -Ff "${enabled_list_f}" > "${cmake_f}"
+    [[ -s "${cmake_f}" ]] && echo >> "${cmake_f}"
+  fi
+  if [[ -s "${enabled_list_f}" ]]; then
+    ogenc_grep -wFf "${ft}" "${fcmake_all}" | ogenc_grep -vF -f "${enabled_list_f}" \
+                      | ogenc_grep -vF -f "${disabled_list_f}" | sed "s/ON/${defval}/g" >> "${cmake_f}"
+  else
+    ogenc_grep -wFf "${ft}" "${fcmake_all}" \
+                      | ogenc_grep -vF -f "${disabled_list_f}" | sed "s/ON/${defval}/g" >> "${cmake_f}"
+  fi
+  [[ -s "${cmake_f}" ]] && echo >> "${cmake_f}"
+  if [[ -s "${enabled_list_f}" ]]; then
+    ogenc_grep -wFf "${ft}" "${fcmake_all}" | ogenc_grep -vF -f "${enabled_list_f}" \
+                      | ogenc_grep -F -f "${disabled_list_f}" | sed "s/ON/OFF/g" >> "${cmake_f}"
+  else
+    ogenc_grep -wFf "${ft}" "${fcmake_all}" \
+                      | ogenc_grep -F -f "${disabled_list_f}" | sed "s/ON/OFF/g" >> "${cmake_f}"
+  fi
+  [[ -s "${cmake_f}" ]] && echo >> "${cmake_f}"
+done
+
+while IFS="" read -r comp; do
+  [[ -z "${comp}" ]] && continue
+  [[ -n "${filter_comp}" && "${comp}" != "${filter_comp}" ]] && continue
+  specific_f="${cmake_path}/${specific}-${comp}.cmake"
+  compilerid=""
+  [[ "${comp}" == *g++* ]] && compilerid="GNU"
+  [[ "${comp}" == *clang* ]] && compilerid="Clang"
+  : > "${specific_f}"
+  echo "if ( \"\${CMAKE_CXX_COMPILER_ID}\" STREQUAL \"${compilerid}\" )" >> "${specific_f}"
+
+  verlist_f="${cache_path}/${comp}-${specific}-cmake-versions.txt"
+  shopt -s nullglob
+  cmake_layers=( "${cmake_path}/${specific}-${comp}-"*.cmake )
+  shopt -u nullglob
+  : > "${verlist_f}"
+  if (( ${#cmake_layers[@]} > 0 )); then
+    for layer in "${cmake_layers[@]}"; do
+      base=$(basename "${layer}" .cmake)
+      echo "${base#"${specific}-${comp}-"}"
+    done | sort --version-sort -u > "${verlist_f}"
+  fi
+
+  while IFS="" read -r ver; do
+    [[ -z "${ver}" ]] && continue
+    echo "  if( CMAKE_CXX_COMPILER_VERSION VERSION_GREATER ${ver} \
+OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ${ver} )" >> "${specific_f}"
+    echo "    include(\${CMAKE_CURRENT_LIST_DIR}/${specific}-${comp}-${ver}.cmake)"  >> "${specific_f}"
+    echo "  endif()"  >> "${specific_f}"
+  done < "${verlist_f}"
+
+  echo "endif()"  >> "${specific_f}"
+  echo "" >> "${specific_f}"
+done < "${prefix_list_f}"

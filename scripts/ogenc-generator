@@ -1,0 +1,74 @@
+#!/bin/bash
+set -euo pipefail
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
+. "$scriptdir/ogenc-context1"
+ogenc_ensure_compilers
+
+usage()
+{
+  echo "Генератор списков предупреждений или оптимизаций:"
+  echo "  $scriptname warnings [целевой_компилятор [компилятор-генератор [опции-генератора ] ] ]"
+  echo "  $scriptname optimize  [целевой_компилятор [компилятор-генератор [опции-генератора ] ] ]"
+  echo "Пример:"
+  echo "  $scriptname warnings clang++ g++ \"-W -Wall -Wextra -Wformat -Wpedantic\" "
+}
+
+if [[ -z "${1:-}" ]] || { [[ "$1" != "warnings" ]] && [[ "$1" != "optimize" ]]; }; then
+  usage
+  exit 1
+fi
+
+specific=$1
+
+[[ -n "${2:-}" ]] && current_compiler="$2"
+[[ -n "${3:-}" ]] && default_generator="$3"
+[[ -n "${4:-}" ]] && generator_options="$4"
+
+comp_name=$(ogenc-versions name "${current_compiler}")
+raw_options_list_f="${cache_path}/raw-${comp_name}-${specific}.txt"
+all_options_list_f="${cache_path}/all-${comp_name}-${specific}.txt"
+fail_options_list_f="${cache_path}/fail-${comp_name}-${specific}.txt"
+options_list_f="${cache_path}/${specific}-${comp_name}.txt"
+probe_dir="${cache_path}/probe"
+probe_err="${cache_path}/probe-stderr.txt"
+mkdir -p "${probe_dir}"
+
+# shellcheck disable=SC2086
+log 0 "Генерирую ${specific}: ${default_generator} ${generator_options} -Q --help=${specific} для ${current_compiler} ..."
+
+read -r -a gen_opts <<< "${generator_options}"
+"${default_generator}" "${gen_opts[@]}" -Q "--help=${specific}" | ogenc_grep -v "\[enabled\]" > "${raw_options_list_f}"
+: > "${all_options_list_f}"
+: > "${fail_options_list_f}"
+
+while IFS="" read -r opt_line
+do
+  [[ -z "${opt_line}" ]] && continue
+  opt=$(echo "${opt_line}" | awk '{print $1}')
+  [[ "${opt}" == -* ]] || continue
+
+  if (
+    cd "${probe_dir}"
+    "${current_compiler}" "${opt}" "${scriptdir}/test.cpp" -Werror -o probe
+  ) >/dev/null 2>"${probe_err}"; then
+    if [[ "$(wc -l < "${probe_err}" | tr -d ' ')" == "0" ]]; then
+      log 2 "OK: ${opt}"
+      echo "${opt}" >> "${all_options_list_f}"
+    else
+      log 1 "ОШИБКА1 ${current_compiler}: ${opt_line}"
+      log 1 "$(cat "${probe_err}")"
+      echo "${opt}" >> "${fail_options_list_f}"
+    fi
+  else
+    log 1 "ОШИБКА2 ${current_compiler}: ${opt_line}"
+    echo "${opt}" >> "${fail_options_list_f}"
+  fi
+done < "${raw_options_list_f}"
+
+log 2 "фильтр ignored.txt → ${options_list_f}"
+ogenc_grep -vwF -f "${ignored_list_f}" "${all_options_list_f}" | sort > "${options_list_f}"
+log 2 "cp ${options_list_f} ${lists_all_path}"
+cp "${options_list_f}" "${lists_all_path}/"
+log 1 "Готово"

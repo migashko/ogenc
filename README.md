@@ -26,6 +26,30 @@
 
 ---
 
+## Краткий справочник CMake-опций
+
+| Опция | По умолчанию | Смысл |
+|---|---|---|
+| `DISABLE_WARNINGS` | OFF | Полностью отключить warnings от ogenc |
+| `EXTRA_WARNINGS` | ON | `-Wextra -Wpedantic -Wformat -pedantic-errors` |
+| `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
+| `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
+| `APOCALYPTIC_WARNINGS` | OFF | Включает `PARANOID_WARNINGS`; сигнал «гнать paranoid и на зависимостях» для вашей обёртки `add_subdirectory`, не сам обход дерева |
+| `PARANOID_OPTIMIZE` | OFF | Подключить optimize-инфраструктуру ogenc |
+| `OGENC_OPTIMIZE` | OFF | Синоним / условие для `target_ogenc_optimize` |
+
+## Краткий справочник функций
+
+| Функция | Назначение |
+|---|---|
+| `target_ogenc_warnings(target)` | Навесить выбранный уровень предупреждений на таргет |
+| `target_ogenc_optimize(target)` | Навесить optimize-опции ogenc (если включены) |
+| `ogenc_warning(-Wflag ON\|OFF)` | Глобально включить/выключить предупреждение |
+| `ogenc_optimize(-fflag ON\|OFF)` | Глобально включить/выключить optimize-флаг |
+| `update_ogenc(TARGETS … WARNINGS/OPTIMIZE … ON\|OFF)` | То же для списка таргетов |
+
+---
+
 ## Быстрый старт (подключение к проекту)
 
 ### 1. Добавьте ogenc в проект
@@ -258,20 +282,20 @@ export VERBOSE=1
 Вспомогательно:
 
 ```bash
-./ogenc-compilers update     # обновить кэш доступных компиляторов
-./ogenc-compilers generator  # показать g++, выбранный как источник --help
-./ogenc-versions name /usr/bin/g++-12
+./scripts/ogenc-compilers update     # обновить кэш доступных компиляторов
+./scripts/ogenc-compilers generator  # показать g++, выбранный как источник --help
+./scripts/ogenc-versions name /usr/bin/g++-12
 ```
 
 Отдельные стадии (если нужно точечно):
 
 ```bash
-./ogenc-generator warnings /usr/bin/g++-12
-./ogenc-generator optimize /usr/bin/clang++
-./ogenc-splitter warnings
-./ogenc-splitter optimize
-./ogenc-cmake warnings
-./ogenc-cmake optimize
+./scripts/ogenc-generator warnings /usr/bin/g++-12
+./scripts/ogenc-generator optimize /usr/bin/clang++
+./scripts/ogenc-splitter warnings
+./scripts/ogenc-splitter optimize
+./scripts/ogenc-cmake warnings
+./scripts/ogenc-cmake optimize
 ```
 
 ### Побочные файлы при генерации
@@ -299,30 +323,6 @@ export VERBOSE=1
 
 ---
 
-## Краткий справочник CMake-опций
-
-| Опция | По умолчанию | Смысл |
-|---|---|---|
-| `DISABLE_WARNINGS` | OFF | Полностью отключить warnings от ogenc |
-| `EXTRA_WARNINGS` | ON | `-Wextra -Wpedantic -Wformat -pedantic-errors` |
-| `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
-| `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
-| `APOCALYPTIC_WARNINGS` | OFF | Включает `PARANOID_WARNINGS`; сигнал «гнать paranoid и на зависимостях» для вашей обёртки `add_subdirectory`, не сам обход дерева |
-| `PARANOID_OPTIMIZE` | OFF | Подключить optimize-инфраструктуру ogenc |
-| `OGENC_OPTIMIZE` | OFF | Синоним / условие для `target_ogenc_optimize` |
-
-## Краткий справочник функций
-
-| Функция | Назначение |
-|---|---|
-| `target_ogenc_warnings(target)` | Навесить выбранный уровень предупреждений на таргет |
-| `target_ogenc_optimize(target)` | Навесить optimize-опции ogenc (если включены) |
-| `ogenc_warning(-Wflag ON\|OFF)` | Глобально включить/выключить предупреждение |
-| `ogenc_optimize(-fflag ON\|OFF)` | Глобально включить/выключить optimize-флаг |
-| `update_ogenc(TARGETS … WARNINGS/OPTIMIZE … ON\|OFF)` | То же для списка таргетов |
-
----
-
 ## Структура репозитория (ориентир)
 
 ```text
@@ -334,7 +334,7 @@ lists/                         # списки опций, появившихся
 lists/all/                     # полные списки опций для версии
 example/                       # демо-таргет
 ogenc                          # полный цикл перегенерации
-ogenc-*                        # отдельные стадии конвейера
+scripts/                       # стадии конвейера (compilers, generator, splitter, cmake, …)
 ```
 
 ---

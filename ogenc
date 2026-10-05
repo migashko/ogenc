@@ -1,18 +1,25 @@
 #!/bin/bash
 # Полный цикл перегенерации списков предупреждений и оптимизаций.
+set -euo pipefail
 
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-. "$scriptdir/ogenc-context2"
-[ -z $VERBOSE ] && VERBOSE=0
+rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptdir="${rootdir}/scripts"
+. "${scriptdir}/ogenc-context1"
+VERBOSE="${VERBOSE:-0}"
+
+"${scriptdir}/ogenc-compilers" update
+ogenc_load_default_generator
 
 while IFS="" read -r target_line
 do
-  target_comp=$(echo $target_line | awk '{print $3}')
-  VERBOSE=$VERBOSE $scriptdir/ogenc-generator warnings ${target_comp}
-  VERBOSE=$VERBOSE $scriptdir/ogenc-generator optimize ${target_comp}
+  [[ -z "${target_line}" || "${target_line}" =~ ^[[:space:]]*# ]] && continue
+  target_comp=$(echo "${target_line}" | awk '{print $3}')
+  [[ -z "${target_comp}" ]] && continue
+  VERBOSE="${VERBOSE}" "${scriptdir}/ogenc-generator" warnings "${target_comp}"
+  VERBOSE="${VERBOSE}" "${scriptdir}/ogenc-generator" optimize "${target_comp}"
 done < "${available_compilers_f}"
 
-VERBOSE=$VERBOSE $scriptdir/ogenc-splitter warnings
-VERBOSE=$VERBOSE $scriptdir/ogenc-splitter optimize
-VERBOSE=$VERBOSE $scriptdir/ogenc-cmake warnings
-VERBOSE=$VERBOSE $scriptdir/ogenc-cmake optimize
+VERBOSE="${VERBOSE}" "${scriptdir}/ogenc-splitter" warnings
+VERBOSE="${VERBOSE}" "${scriptdir}/ogenc-splitter" optimize
+VERBOSE="${VERBOSE}" "${scriptdir}/ogenc-cmake" warnings
+VERBOSE="${VERBOSE}" "${scriptdir}/ogenc-cmake" optimize

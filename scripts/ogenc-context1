@@ -1,0 +1,73 @@
+#!/bin/bash
+export LANG=en_US.UTF-8
+
+# Каталог утилит (scripts/) и корень репозитория
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+rootdir="$( cd "${scriptdir}/.." >/dev/null 2>&1 && pwd )"
+PATH="$PATH:$scriptdir"
+config_path="${rootdir}/config"
+lists_path="${rootdir}/lists"
+cmake_path="${rootdir}/cmake/ogenc/gen"
+lists_all_path="${rootdir}/lists/all"
+cache_path="${rootdir}/.cache"
+
+mkdir -p "${cache_path}"
+mkdir -p "${lists_all_path}"
+mkdir -p "${cmake_path}"
+
+current_compiler="${CXX:-}"
+if [[ -z "${current_compiler}" ]] && command -v g++ >/dev/null 2>&1; then
+  current_compiler=g++
+fi
+if [[ -z "${current_compiler}" ]] && command -v clang++ >/dev/null 2>&1; then
+  current_compiler=clang++
+fi
+
+compilers_list_f="${config_path}/compilers.txt"
+enabled_list_f="${config_path}/enabled.txt"
+disabled_list_f="${config_path}/disabled.txt"
+ignored_list_f="${config_path}/ignored.txt"
+available_compilers_f="${cache_path}/available_compilers.txt"
+default_generator_f="${cache_path}/default_generator.txt"
+prefix_list_f="${cache_path}/prefix-list.txt"
+generator_options="-Wall -Wextra -Wpedantic -Wformat --pedantic-errors -O3 -Ofast"
+
+log()
+{
+  local level="$1"
+  local msg="$2"
+  [[ -z "${VERBOSE:-}" ]] && return 0
+  if (( level <= VERBOSE )); then
+    echo "$msg"
+  fi
+  return 0
+}
+
+# grep: код 1 (нет совпадений) не считается ошибкой
+ogenc_grep()
+{
+  grep "$@" || {
+    local st=$?
+    [[ $st -eq 1 ]] && return 0
+    return "$st"
+  }
+}
+
+ogenc_load_default_generator()
+{
+  if [[ -z "${default_generator:-}" ]]; then
+    default_generator="${CXXGEN:-}"
+  fi
+  if [[ -z "${default_generator:-}" && -f "${default_generator_f}" ]]; then
+    default_generator="$(cat "${default_generator_f}")"
+  fi
+}
+
+# Обновить кэш компиляторов только если его ещё нет (не на каждом этапе)
+ogenc_ensure_compilers()
+{
+  if [[ ! -f "${available_compilers_f}" || ! -s "${prefix_list_f}" ]]; then
+    "${scriptdir}/ogenc-compilers" update
+  fi
+  ogenc_load_default_generator
+}

@@ -1,0 +1,73 @@
+#!/bin/bash
+set -euo pipefail
+export LANG=en_US.UTF-8
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
+. "$scriptdir/ogenc-context1"
+
+usage()
+{
+  echo "Вспомогательный скрипт для работы с версиями:"
+  echo "  $scriptname формат [путь_к_компилятору]"
+  echo "Допустимые форматы:"
+  echo "  compiler"
+  echo "  version"
+  echo "  prefix"
+  echo "  suffix"
+  echo "  name"
+  echo "  all"
+  echo "Пример:"
+  echo "  ./$scriptname compiler /usr/bin/clang++"
+  echo "  clang++"
+}
+
+if [[ -n "${2:-}" ]]; then
+  current_compiler="$2"
+fi
+if [[ -z "${current_compiler:-}" ]]; then
+  echo "Ошибка: не задан текущий компилятор"
+  echo "Передайте путь к компилятору вторым аргументом или через переменную CXX"
+  exit 1
+fi
+
+headline=$("${current_compiler}" --version | head -1)
+compiler=$(basename "${current_compiler}")
+version=$(echo "${headline}" | grep -Eo "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+" | tail -1)
+suffix=$(echo "${version}" | grep -Eo "[[:digit:]]+\.[[:digit:]]+")
+prefix=${compiler%%-*}
+display="${prefix}-${suffix}"
+
+case "${1:-}" in
+  compiler)
+    echo "${compiler}"
+    ;;
+  version)
+    echo "${version}"
+    ;;
+  prefix)
+    echo "${prefix}"
+    ;;
+  suffix)
+    echo "${suffix}"
+    ;;
+  name)
+    echo "${display}"
+    ;;
+  all)
+    echo "компилятор: $(basename "${current_compiler}")"
+    echo "версия: ${version}"
+    echo "префикс: ${prefix}"
+    echo "суффикс: ${suffix}"
+    echo "имя: ${display}"
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,116 @@
+#!/bin/bash
+set -euo pipefail
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
+. "$scriptdir/ogenc-context1"
+
+usage()
+{
+  echo "Работа со списком актуальных компиляторов:"
+  echo "  $scriptname config              пути из config/compilers.txt"
+  echo "  $scriptname list                доступные компиляторы (кэш после update)"
+  echo "  $scriptname update              обновить кэш по compilers.txt"
+  echo "  $scriptname add <путь>          добавить компилятор в compilers.txt"
+  echo "  $scriptname generator           путь к g++ для --help"
+}
+
+ogenc_update_compilers()
+{
+  : > "${prefix_list_f}"
+  # Формат "префикс версия путь"
+  : > "${available_compilers_f}"
+
+  while IFS="" read -r compiler
+  do
+    [[ -z "${compiler}" || "${compiler}" =~ ^[[:space:]]*# ]] && continue
+    compiler="${compiler#"${compiler%%[![:space:]]*}"}"
+    compiler="${compiler%"${compiler##*[![:space:]]}"}"
+    log 2 "${compiler}"
+    [[ -e "${compiler}" ]] || continue
+
+    prefix=$(ogenc-versions prefix "${compiler}" | head -1)
+    version=$(ogenc-versions suffix "${compiler}" | head -1)
+
+    log 1 "${prefix}-${version}"
+
+    if ! grep -Fxq "${prefix}" "${prefix_list_f}"; then
+      echo "${prefix}" >> "${prefix_list_f}"
+      : > "${cache_path}/${prefix}-versions.txt"
+    fi
+
+    toppred=$(sort --version-sort "${cache_path}/${prefix}-versions.txt" | tail -1)
+
+    if ! grep -Fxq "${version}" "${cache_path}/${prefix}-versions.txt"; then
+      echo "${version}" >> "${cache_path}/${prefix}-versions.txt"
+      echo "${prefix} ${version} ${compiler}" >> "${available_compilers_f}"
+    fi
+
+    if [[ "${prefix}" == "g++" ]]; then
+      newer=$(printf "%s\n%s\n" "${toppred}" "${version}" | sort --version-sort | tail -1)
+      if [[ "${newer}" == "${version}" ]]; then
+        echo "${compiler}" > "${default_generator_f}"
+      fi
+    fi
+  done < "${compilers_list_f}"
+
+  while IFS="" read -r pfx
+  do
+    [[ -z "${pfx}" ]] && continue
+    vf="${cache_path}/${pfx}-versions.txt"
+    [[ -f "${vf}" ]] || continue
+    sort --version-sort -o "${vf}" "${vf}"
+  done < "${prefix_list_f}"
+}
+
+command="${1:-list}"
+add_path=""
+
+case "${command}" in
+  config|list|update|generator|gen)
+    ;;
+  add)
+    add_path="${2:-}"
+    if [[ -z "${add_path}" ]]; then
+      echo "Укажите путь к компилятору: $scriptname add /usr/bin/g++-12"
+      exit 1
+    fi
+    ;;
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
+
+case "${command}" in
+  add)
+    if grep -Fxq "${add_path}" "${compilers_list_f}"; then
+      log 0 "Уже в списке: ${add_path}"
+    else
+      echo "${add_path}" >> "${compilers_list_f}"
+      log 0 "Добавлено: ${add_path}"
+    fi
+    exit 0
+    ;;
+  config)
+    cat "${compilers_list_f}"
+    exit 0
+    ;;
+esac
+
+if [[ ! -f "${available_compilers_f}" || "${command}" == "update" ]]; then
+  ogenc_update_compilers
+fi
+
+case "${command}" in
+  list)
+    cat "${available_compilers_f}"
+    ;;
+  generator|gen)
+    cat "${default_generator_f}"
+    ;;
+esac

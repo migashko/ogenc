@@ -1,0 +1,75 @@
+#!/bin/bash
+set -euo pipefail
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+scriptname=$(basename -- "${BASH_SOURCE[0]}")
+. "$scriptdir/ogenc-context1"
+ogenc_ensure_compilers
+
+usage()
+{
+  echo "Разделение списков предупреждений или оптимизаций по версиям:"
+  echo "  $scriptname warnings [g++|clang++]"
+  echo "  $scriptname optimize [g++|clang++]"
+  echo "Пример:"
+  echo "  $scriptname warnings clang++"
+}
+
+if [[ -z "${1:-}" ]] || { [[ "$1" != "warnings" ]] && [[ "$1" != "optimize" ]]; }; then
+  usage
+  exit 1
+fi
+
+specific=$1
+pref="${2:-}"
+
+while IFS="" read -r current_prefix
+do
+  [[ -n "${pref}" && "${pref}" != "${current_prefix}" ]] && continue
+  [[ -z "${current_prefix}" ]] && continue
+  log 0 "Разделяю ${specific} для ${current_prefix} ..."
+
+  verlist_f="${cache_path}/${current_prefix}-${specific}-versions.txt"
+  shopt -s nullglob
+  all_lists=( "${lists_all_path}/${specific}-${current_prefix}-"*.txt )
+  shopt -u nullglob
+  if (( ${#all_lists[@]} == 0 )); then
+    log 0 "Нет списков ${specific} для ${current_prefix}"
+    continue
+  fi
+  # Версию берём только из имени файла (warnings-g++-14.2.txt → 14.2),
+  # не из содержимого: иначе ловятся номера из -Wc++26-compat и т.п.
+  : > "${verlist_f}"
+  for f in "${all_lists[@]}"; do
+    base=$(basename "${f}" .txt)
+    echo "${base#"${specific}-${current_prefix}-"}"
+  done | sort --version-sort -u > "${verlist_f}"
+
+  newest=$(tail -1 "${verlist_f}")
+  top_list_f="${cache_path}/${current_prefix}-${specific}-top.txt"
+  sort "${lists_all_path}/${specific}-${current_prefix}-${newest}.txt" > "${top_list_f}"
+  common_list_f="${cache_path}/${current_prefix}-${specific}-common.txt"
+  rm -f "${common_list_f}"
+
+  tmp1_f="${cache_path}/split-${current_prefix}-${specific}-1.txt"
+  tmp2_f="${cache_path}/split-${current_prefix}-${specific}-2.txt"
+
+  while IFS="" read -r curver
+  do
+    [[ -z "${curver}" ]] && continue
+    log 1 "Слой ${curver}"
+    curlist_f="${lists_all_path}/${specific}-${current_prefix}-${curver}.txt"
+    reslist_f="${lists_path}/${specific}-${current_prefix}-${curver}.txt"
+
+    cut -d ' ' -f 1 "${curlist_f}" | sort > "${tmp1_f}"
+    comm --check-order -12 "${tmp1_f}" "${top_list_f}" | awk '{print $1}' | sort > "${tmp2_f}"
+    if [[ -f "${common_list_f}" ]]; then
+      comm --check-order -23 "${tmp2_f}" "${common_list_f}" | awk '{print $1}' > "${tmp1_f}"
+      cat "${common_list_f}" > "${tmp2_f}"
+    fi
+    cat "${tmp1_f}" >> "${tmp2_f}"
+    sort -u "${tmp2_f}" > "${common_list_f}"
+    cp "${tmp1_f}" "${reslist_f}"
+  done < "${verlist_f}"
+
+done < "${prefix_list_f}"

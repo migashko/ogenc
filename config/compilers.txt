@@ -26,4 +26,10 @@
 /usr/bin/g++-8
 /usr/bin/g++-9
 /usr/bin/g++-10
+/usr/bin/g++-12
+/usr/bin/g++-13
+/usr/bin/g++-14
 /usr/bin/clang++
+/usr/bin/clang++-19
+/usr/bin/clang++-21
+
