@@ -1,6 +1,4 @@
 ogenc_warning(-Walloca "Warn on any use of alloca." ON)
-ogenc_warning(-Wc++20-compat "Warn about C++ constructs whose meaning differs between ISO C++ 2017 and ISO C++ 2020." ON)
-ogenc_warning(-Wc++2a-compat "Same as -Wc++20-compat." ON)
 ogenc_warning(-Wclass-conversion "Warn when a conversion function will never be called due to the type it converts to." ON)
 ogenc_warning(-Wconversion-null "Warn for converting NULL from/to a non-pointer type." ON)
 ogenc_warning(-Wdelete-incomplete "Warn when deleting a pointer to incomplete type." ON)
@@ -14,4 +12,6 @@ ogenc_warning(-Wprotocol "Warn if inherited methods are unimplemented." ON)
 ogenc_warning(-Wshadow-ivar "Warn if a local declaration hides an instance variable." ON)
 ogenc_warning(-Wsuggest-override "Suggest that the override keyword be used when the declaration of a virtual function overrides another." ON)
 
+ogenc_warning(-Wc++20-compat "Warn about C++ constructs whose meaning differs between ISO C++ 2017 and ISO C++ 2020." OFF)
+ogenc_warning(-Wc++2a-compat "Same as -Wc++20-compat." OFF)
 

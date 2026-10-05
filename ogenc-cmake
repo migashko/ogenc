@@ -12,24 +12,59 @@ function usage()
   echo "  $scriptname warnings clang++"
 }
 
+gen_warnings_cmake() {
+    local generator="$1"
+    local kind="$2"
+    local out="$3"
+
+    # Имя функции: warnings -> warning, optimize -> optimize, errors -> error
+    local func="${kind%s}"
+
+    "${generator}" "--help=${kind}" \
+        | sed 's/"/`/g' \
+        | awk '
+            {
+                line = $0
+                sub(/^[ \t]+/, "", line)
+
+                n = split(line, f, /[ \t]+/)
+
+                if (f[1] ~ /^-/) {
+                    if (prev != "") print prev
+                    prev = line
+                } else if (prev != "") {
+                    prev = prev " " line
+                }
+            }
+            END { if (prev != "") print prev }
+          ' \
+        | awk -v func="${func}" '
+            {
+                printf("ogenc_%s(%s \"", func, $1)
+                for (i = 2; i < NF; i++) printf "%s ", $i
+                printf("%s\" ON)\n", $NF)
+            }
+          ' \
+        | sort -u > "${out}"
+}
+
 [ -z $1 ] && usage && exit
 [ $1 != "warnings" ] && [ $1 != "optimize" ] && usage && exit
 specific=$1
-
-
 
 #verlist_f="${cache_path}/$current_prefix-versions-all.txt"
 #ls $lists_all_path/$specific-$current_prefix-*.txt | egrep -o "[0-9]+(\.[0-9]+)*" | sort --version-sort > "${verlist_f}"
 #cat ${verlist_f}
 
-fcmake_warnings_all="${cache_path}/cmake-warnings-all.cmake"
-awk_param='{printf("ogenc_warning(%s \"",$1);for (i=2; i<NF; i++) printf $i " "; printf("%s\" ON)\n",$NF);}'
-$default_generator --help=warnings | sed 's/"/`/g' | awk "${awk_param}" | sort > ${fcmake_warnings_all}
+#fcmake_warnings_all="${cache_path}/cmake-warnings-all.cmake"
+#awk_param='{printf("ogenc_warning(%s \"",$1);for (i=2; i<NF; i++) printf $i " "; printf("%s\" ON)\n",$NF);}'
+#$default_generator --help=warnings | sed 's/"/`/g' | awk "${awk_param}" | sort > ${fcmake_warnings_all}
+gen_warnings_cmake "${default_generator}" warnings  "${cache_path}/cmake-warnings-all.cmake"
 
-fcmake_optimize_all="${cache_path}/cmake-optimize-all.cmake"
-awk_param=${awk_param//warning/optimize}
-$default_generator --help=optimize | sed 's/"/`/g' | awk "${awk_param}" | sort > ${fcmake_optimize_all}
-
+#fcmake_optimize_all="${cache_path}/cmake-optimize-all.cmake"
+#awk_param=${awk_param//warning/optimize}
+#$default_generator --help=optimize | sed 's/"/`/g' | awk "${awk_param}" | sort > ${fcmake_optimize_all}
+gen_warnings_cmake "${default_generator}" optimize  "${cache_path}/cmake-optimize-all.cmake"
 
 for f in ${lists_path}/*.txt; do
   #comp="g++";
