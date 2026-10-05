@@ -11,8 +11,8 @@ ogenc_warning(-Winvalid-constexpr "Warn when a function never produces a constan
 ogenc_warning(-Winvalid-utf8 "Warn about invalid UTF-8 characters." ON)
 ogenc_warning(-Wnrvo "Warn if the named return value optimization is not performed although it is allowed." ON)
 ogenc_warning(-Wself-move "Warn when a value is moved to itself with std::move." ON)
-ogenc_warning(-Wsuggest-attribute=returns_nonnull "Warn about functions which might be candidates for __attribute__((returns_nonnull))." ON)
 ogenc_warning(-Wtemplate-id-cdtor "Warn about simple-template-id in a constructor or destructor." ON)
 ogenc_warning(-Wunused-parameter "Warn when a function parameter is unused." ON)
 
+ogenc_warning(-Wsuggest-attribute=returns_nonnull "Warn about functions which might be candidates for __attribute__((returns_nonnull))." OFF)
 
