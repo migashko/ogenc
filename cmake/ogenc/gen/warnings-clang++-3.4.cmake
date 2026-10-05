@@ -1,3 +1,4 @@
+ogenc_warning(-Wc++0x-compat "Same as -Wc++11-compat." ON)
 ogenc_warning(-Wcast-align "Warn about pointer casts which increase alignment." ON)
 ogenc_warning(-Wcast-qual "Warn about casts which discard qualifiers." ON)
 ogenc_warning(-Wconversion "Warn for implicit type conversions that may change a value." ON)
@@ -23,11 +24,10 @@ ogenc_warning(-Wswitch-default "Warn about enumerated switches missing a `defaul
 ogenc_warning(-Wswitch-enum "Warn about all enumerated switches missing a specific case." ON)
 ogenc_warning(-Wsynth "Deprecated. This switch has no effect." ON)
 ogenc_warning(-Wunused-macros "Warn about macros defined in the main file that are not used." ON)
-ogenc_warning(-Wwrite-strings "In C++, nonzero means warn about deprecated conversion from string literals to 'char *'." ON)
+ogenc_warning(-Wwrite-strings "In C++, nonzero means warn about deprecated conversion from string literals to 'char *'. In C, similar warning, except that the" ON)
 
 ogenc_warning(-Wabi "Warn about things that will change when compiling with an ABI-compliant compiler." OFF)
 ogenc_warning(-Waggregate-return "Warn about returning structures, unions or arrays." OFF)
-ogenc_warning(-Wc++0x-compat "Same as -Wc++11-compat." OFF)
 ogenc_warning(-Weffc++ "Warn about violations of Effective C++ style rules." OFF)
 ogenc_warning(-Winline "Warn when an inlined function cannot be inlined." OFF)
 ogenc_warning(-Wpadded "Warn when padding is required to align structure members." OFF)

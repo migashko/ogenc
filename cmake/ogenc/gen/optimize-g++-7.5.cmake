@@ -9,7 +9,7 @@ ogenc_optimize(-fno-threadsafe-statics "Do not generate thread-safe code for ini
 ogenc_optimize(-fprofile-reorder-functions "Enable function reordering that improves code placement." OFF)
 ogenc_optimize(-frtti "Generate run time type descriptor information." OFF)
 ogenc_optimize(-fsigned-zeros "Disable floating point optimizations that ignore the IEEE signedness of zero." OFF)
-ogenc_optimize(-fstack-clash-protection "Insert code to probe each page of stack space as it is allocated to protect from stack-" OFF)
+ogenc_optimize(-fstack-clash-protection "Insert code to probe each page of stack space as it is allocated to protect from stack-clash style attacks." OFF)
 ogenc_optimize(-ftrapping-math "Assume floating-point operations can trap." OFF)
 ogenc_optimize(-ftree-vectorize "Enable vectorization on trees." OFF)
 
