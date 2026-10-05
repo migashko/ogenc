@@ -1,0 +1,2 @@
+-Warray-bounds
+-Wunused-parameter

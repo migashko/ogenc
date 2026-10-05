@@ -1,0 +1,5 @@
+-Wchanges-meaning
+-Wdangling-reference
+-Winvalid-constexpr
+-Winvalid-utf8
+-Wself-move

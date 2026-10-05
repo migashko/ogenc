@@ -1,0 +1,2 @@
+-Wjump-misses-init
+-Wnrvo
