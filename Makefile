@@ -1,3 +1,4 @@
+# Сборка примера (example/).
 default: 
 	mkdir -p ./build
 	cd build && cmake ..
@@ -5,7 +6,7 @@ default:
 
 disabled: 
 	mkdir -p ./build
-	cd build && cmake .. -DDISABLED_WARNINGS=ON
+	cd build && cmake .. -DDISABLE_WARNINGS=ON
 	cmake --build ./build
 
 extra: 

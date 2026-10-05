@@ -1,3 +1,3 @@
-cmake_minimum_required(VERSION 2.9)
-project(example)
+cmake_minimum_required(VERSION 3.10)
+project(ogenc-example)
 add_subdirectory(example)

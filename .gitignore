@@ -1,4 +1,5 @@
-test.cpp.opt-record.json.gz
+*.opt-record.json.gz
+*.opt.yaml
 
 .cache
 *~
