@@ -15,7 +15,7 @@ function(ogenc_option target specific wname)
     endif()
   endif()
 
-  message(STATUS "OGENC ${specific} ${wname} для ${target}: ${wopt}" )
+  message(STATUS "OGENC ${specific} ${wname} for ${target}: ${wopt}" )
 
   if ( ${wopt} )
     list(APPEND ${opt_list} ${wname})
@@ -51,14 +51,14 @@ function(update_ogenc)
   set(value ON)
 
   if (args_ON AND args_OFF )
-    message(FATAL_ERROR "Нельзя указывать ON и OFF одновременно")
+    message(FATAL_ERROR "Cannot set ON and OFF at the same time")
   endif()
 
   if (args_OFF)
     set(value OFF)
   endif()
 
-  # Списки таргета собираются только в paranoid; SOURCES — всегда (-Wno- нужен и на Extra).
+  # Per-target lists are built only for paranoid; SOURCES always apply (-Wno- is needed at every level).
   if ( PARANOID_WARNINGS )
     foreach(target ${args_TARGETS})
       foreach(opt ${args_WARNINGS})

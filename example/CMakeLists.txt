@@ -3,22 +3,22 @@ project(ogenc-demo)
 
 include(../cmake/ogenc.cmake)
 
-# 1. Глобально: убрать флаг из набора paranoid для всех таргетов.
-#    Имеет смысл при PARANOID_WARNINGS=ON; вызывать после include(ogenc.cmake).
+# 1. Globally: drop the flag from the paranoid set for every target.
+#    Meaningful when PARANOID_WARNINGS=ON; call after include(ogenc.cmake).
 ogenc_warning(-Wzero-as-null-pointer-constant OFF)
 
 add_executable(demo1 demo1.cpp demo1_target.cpp demo1_tu.cpp)
 set_target_properties(demo1 PROPERTIES CXX_STANDARD 11 CXX_EXTENSIONS OFF)
 
-# 2. Для всей цели (только paranoid): -Wswitch-enum снят со всех файлов demo1.
+# 2. For the whole target (paranoid only): -Wswitch-enum is removed from every demo1 source.
 update_ogenc(
   TARGETS demo1
   WARNINGS -Wswitch-enum
   OFF
 )
 
-# 3. Для одной единицы трансляции (любой уровень): остальные файлы demo1
-#    по-прежнему собираются с -Wfloat-equal.
+# 3. For one translation unit (any level): the other demo1 sources
+#    are still built with -Wfloat-equal.
 update_ogenc(
   SOURCES demo1_tu.cpp
   WARNINGS -Wfloat-equal

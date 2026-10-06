@@ -1,5 +1,5 @@
 #
-# Автор: Vladimir Migashko <migashko@gmail.com>, (C) 2021-2026
+# Author: Vladimir Migashko <migashko@gmail.com>, (C) 2021-2026
 #
 # SPDX-License-Identifier: MIT
 #
@@ -14,13 +14,13 @@ macro(ogenc_env OPT_NAME TEXT VALUE )
   endif()
 endmacro()
 
-ogenc_env(ENABLE_WARNINGS "Базовый уровень (-Wall; -Werror если OGENC_WERROR)" OFF)
-ogenc_env(EXTRA_WARNINGS "Уровень Extra (-Wextra -Wpedantic …); включает ENABLE_WARNINGS" OFF)
-ogenc_env(PARANOID_WARNINGS "Параноидальный уровень предупреждений; включает EXTRA_WARNINGS" OFF)
-ogenc_env(OGENC_WARNINGS "Синоним PARANOID_WARNINGS" OFF)
-ogenc_env(OGENC_OPTIMIZE "Подключить каталог флагов оптимизации ogenc" OFF)
-ogenc_env(OGENC_WERROR "Трактовать предупреждения как ошибки (-Werror); действует только при ENABLE_WARNINGS" ON)
-ogenc_env(APOCALYPTIC_WARNINGS "Включить PARANOID_WARNINGS (в т.ч. для зависимостей, через обёртку add_subdirectory)" OFF)
+ogenc_env(ENABLE_WARNINGS "Base level (-Wall; -Werror if OGENC_WERROR)" OFF)
+ogenc_env(EXTRA_WARNINGS "Extra level (-Wextra -Wpedantic …); enables ENABLE_WARNINGS" OFF)
+ogenc_env(PARANOID_WARNINGS "Paranoid warning level; enables EXTRA_WARNINGS" OFF)
+ogenc_env(OGENC_WARNINGS "Synonym for PARANOID_WARNINGS" OFF)
+ogenc_env(OGENC_OPTIMIZE "Enable the ogenc optimization-flag catalog" OFF)
+ogenc_env(OGENC_WERROR "Treat warnings as errors (-Werror); only when ENABLE_WARNINGS is on" ON)
+ogenc_env(APOCALYPTIC_WARNINGS "Enable PARANOID_WARNINGS, including for dependencies via an add_subdirectory wrapper" OFF)
 
 if (APOCALYPTIC_WARNINGS)
   set(PARANOID_WARNINGS ON)
