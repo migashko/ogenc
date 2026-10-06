@@ -53,6 +53,94 @@ ogenc_grep()
   }
 }
 
+# Строка g++ -Q --help: конкретный флаг вместо плейсхолдера <…> и обрубка -Wfoo-.
+# Одно слово (уже готовый список) проходит как есть.
+ogenc_concrete_flags()
+{
+  awk '
+    function placeholder_stem(opt, name) {
+      name = opt
+      if (sub(/=<[^>]*>$/, "", name)) return name
+      name = opt
+      if (sub(/=\[[^]]*\]$/, "", name)) return name
+      name = opt
+      if (sub(/<[^>]*>$/, "", name)) return name
+      name = opt
+      if (sub(/\[[^]]*\]$/, "", name)) return name
+      return ""
+    }
+    function stem_of(flag, s) {
+      s = flag
+      sub(/=.*$/, "", s)
+      return s
+    }
+    function is_flag(val) {
+      return val ~ /^-[A-Za-z]/ || val ~ /^--/
+    }
+    function consider(opt, val, name) {
+      if (opt !~ /^-/ || opt ~ /^-Wno-/) return
+      if (is_flag(val)) {
+        from_flag[stem_of(val)] = 1
+        keep[val] = 1
+        return
+      }
+      name = placeholder_stem(opt)
+      if (name != "" && val ~ /^[0-9]+$/) {
+        pending_name[++np] = name
+        pending_val[np] = val
+        return
+      }
+      if (opt ~ /-$/ && val == "") return
+      if (name != "" || opt ~ /=$/ || opt ~ /[<[]/) return
+      keep[opt] = 1
+    }
+    {
+      line = $0
+      sub(/^[ \t]+/, "", line)
+      if (line == "") next
+      n = split(line, f, /[ \t]+/)
+      opt = f[1]
+      val = ""
+      if (n >= 2 && f[2] !~ /^\[/) val = f[2]
+      opts[++nrows] = opt
+      vals[nrows] = val
+    }
+    END {
+      for (i = 1; i <= nrows; i++) consider(opts[i], vals[i])
+      for (i = 1; i <= np; i++) {
+        if (from_flag[pending_name[i]]) continue
+        keep[pending_name[i] "=" pending_val[i]] = 1
+      }
+      for (flag in keep) print flag
+    }
+  '
+}
+
+# Строка enabled.txt с тем же ключом до «=» заменяет значение из help.
+ogenc_apply_enabled_values()
+{
+  local opt stem
+  declare -A by_stem=()
+  if [[ -s "${enabled_list_f}" ]]; then
+    while IFS= read -r opt || [[ -n "${opt}" ]]; do
+      [[ -z "${opt}" || "${opt}" == \#* ]] && continue
+      [[ "${opt}" == *=* ]] || continue
+      stem=${opt%%=*}
+      by_stem["${stem}"]=${opt}
+    done < "${enabled_list_f}"
+  fi
+  while IFS= read -r opt || [[ -n "${opt}" ]]; do
+    [[ -z "${opt}" ]] && continue
+    if [[ "${opt}" == *=* ]]; then
+      stem=${opt%%=*}
+      if [[ -n "${by_stem[${stem}]:-}" ]]; then
+        opt=${by_stem[${stem}]}
+      fi
+    fi
+    printf '%s\n' "${opt}"
+  done
+}
+
 ogenc_load_default_generator()
 {
   if [[ -z "${default_generator:-}" ]]; then

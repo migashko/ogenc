@@ -1,0 +1,6 @@
+-Wframe-larger-than=16384
+-Wstack-usage=131072
+-Wlarger-than=262144
+-Walloca-larger-than=1024
+-Wvla-larger-than=1024
+-Walloc-size-larger-than=67108864

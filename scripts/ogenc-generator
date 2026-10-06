@@ -64,12 +64,14 @@ fi
 : > "${all_options_list_f}"
 : > "${fail_options_list_f}"
 
-while IFS="" read -r opt_line
+norm_options_list_f="${cache_path}/norm-${comp_name}-${specific}.txt"
+ogenc_concrete_flags < "${raw_options_list_f}" \
+  | ogenc_apply_enabled_values | sort -u > "${norm_options_list_f}"
+
+while IFS="" read -r opt
 do
-  [[ -z "${opt_line}" ]] && continue
-  opt=$(echo "${opt_line}" | awk '{print $1}')
+  [[ -z "${opt}" ]] && continue
   [[ "${opt}" == -* ]] || continue
-  # -Wno-… в --help — выключение диагностики (часто «=размер»), не само предупреждение.
   [[ "${opt}" == -Wno-* ]] && continue
 
   if (
@@ -80,15 +82,15 @@ do
       log 2 "OK: ${opt}"
       echo "${opt}" >> "${all_options_list_f}"
     else
-      log 1 "ОШИБКА1 ${current_compiler}: ${opt_line}"
+      log 1 "ОШИБКА1 ${current_compiler}: ${opt}"
       log 1 "$(cat "${probe_err}")"
       echo "${opt}" >> "${fail_options_list_f}"
     fi
   else
-    log 1 "ОШИБКА2 ${current_compiler}: ${opt_line}"
+    log 1 "ОШИБКА2 ${current_compiler}: ${opt}"
     echo "${opt}" >> "${fail_options_list_f}"
   fi
-done < "${raw_options_list_f}"
+done < "${norm_options_list_f}"
 
 log 2 "фильтр ignored.txt → ${options_list_f}"
 ogenc_grep -vwF -f "${ignored_list_f}" "${all_options_list_f}" | sort > "${options_list_f}"

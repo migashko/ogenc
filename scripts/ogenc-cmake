@@ -115,6 +115,48 @@ generator_is_gxx() {
     [[ "${base}" == g++ || "${base}" == g++-* ]]
 }
 
+# Список уже содержит -Wfoo=1, а help — -Wfoo=<0,2>. Описание ищется по ключу до «=».
+ogenc_align_desc() {
+    local list_f="$1"
+    local desc_f="$2"
+    local out="$3"
+    local func="$4"
+    awk -v func="${func}" '
+        function stem_of(flag,   s) {
+            s = flag
+            sub(/=.*$/, "", s)
+            return s
+        }
+        function quote_desc(line,   q) {
+            if (match(line, /"[^"]*"/)) return substr(line, RSTART, RLENGTH)
+            return "\"\""
+        }
+        NR == FNR {
+            if ($0 ~ "^ogenc_" func "\\(") {
+                flag = $0
+                sub("^ogenc_" func "\\(", "", flag)
+                sub(/ .*/, "", flag)
+                exact[flag] = $0
+                s = stem_of(flag)
+                if (!(s in by_stem)) by_stem[s] = $0
+            }
+            next
+        }
+        {
+            flag = $1
+            if (flag == "") next
+            if (flag in exact) line = exact[flag]
+            else if (stem_of(flag) in by_stem) line = by_stem[stem_of(flag)]
+            else line = ""
+            if (line == "") {
+                printf("ogenc_%s(%s \"\" ON)\n", func, flag)
+            } else {
+                printf("ogenc_%s(%s %s ON)\n", func, flag, quote_desc(line))
+            }
+        }
+    ' "${desc_f}" "${list_f}" > "${out}"
+}
+
 if [[ -z "${1:-}" ]] || { [[ "$1" != "warnings" ]] && [[ "$1" != "optimize" ]]; }; then
   usage
   exit 1
@@ -167,7 +209,9 @@ for f in "${list_files[@]}"; do
 
   ft="${cache_path}/cmake-grep-template.txt"
   awk '{printf("%s \n",$1) }' "${f}" > "${ft}"
-  fcmake_all="${cache_path}/cmake-${specific}-all.cmake"
+  fcmake_src="${cache_path}/cmake-${specific}-all.cmake"
+  fcmake_all="${cache_path}/cmake-${specific}-aligned.cmake"
+  ogenc_align_desc "${f}" "${fcmake_src}" "${fcmake_all}" "${specific%s}"
 
   : > "${cmake_f}"
   # Пустой enabled.txt: grep -Ff сразу выходит → SIGPIPE (141) у писателя в пайпе.
