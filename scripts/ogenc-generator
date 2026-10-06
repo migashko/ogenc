@@ -45,9 +45,16 @@ fi
 
 if [[ "${raw_from_help}" == 1 ]]; then
   # shellcheck disable=SC2086
-  log 0 "Генерирую ${specific}: ${default_generator} ${generator_options} -Q --help=${specific} для ${current_compiler} ..."
   read -r -a gen_opts <<< "${generator_options}"
-  "${default_generator}" "${gen_opts[@]}" -Q "--help=${specific}" | ogenc_grep -v "\[enabled\]" > "${raw_options_list_f}"
+  # Без -x c++ справка не помечает [enabled] то, что -Wall уже включает для C++
+  # (-Wreorder, -Wdelete-non-virtual-dtor). -x c++ без файла даёт no input files.
+  if [[ "${specific}" == "warnings" ]]; then
+    log 0 "Генерирую ${specific}: ${default_generator} ${generator_options} -x c++ test.cpp -Q --help=${specific} для ${current_compiler} ..."
+    "${default_generator}" "${gen_opts[@]}" -x c++ "${scriptdir}/test.cpp" -Q "--help=${specific}" | ogenc_grep -v "\[enabled\]" > "${raw_options_list_f}"
+  else
+    log 0 "Генерирую ${specific}: ${default_generator} ${generator_options} -Q --help=${specific} для ${current_compiler} ..."
+    "${default_generator}" "${gen_opts[@]}" -Q "--help=${specific}" | ogenc_grep -v "\[enabled\]" > "${raw_options_list_f}"
+  fi
 else
   # clang, в том числе Apple clang, не понимает --help=warnings. Без g++
   # пробуем флаги, которые уже есть в lists/all (это полные списки, не слои lists/).

@@ -9,7 +9,5 @@ ogenc_warning(-Wregister "Warn about uses of register storage specifier." ON)
 ogenc_warning(-Wsign-conversion "Warn for implicit type conversions between signed and unsigned integers." ON)
 ogenc_warning(-Wundef "Warn if an undefined macro is used in an #if directive." ON)
 
-ogenc_warning(-Wc++11-compat "Warn about C++ constructs whose meaning differs between ISO C++ 1998 and ISO C++ 2011." OFF)
-ogenc_warning(-Wc++14-compat "Warn about C++ constructs whose meaning differs between ISO C++ 2011 and ISO C++ 2014." OFF)
 ogenc_warning(-Wc++1z-compat "Same as -Wc++17-compat." OFF)
 

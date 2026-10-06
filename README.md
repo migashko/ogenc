@@ -6,7 +6,7 @@
 
 Идея простая:
 
-1. Взять почти все доступные `-W…` для данной версии компилятора.
+1. Взять почти все доступные `-W…` для данной версии компилятора (их может быть более ста дополнительных, которые не покрываються -Wall).
 2. По умолчанию выключить заведомо шумные/бесполезные.
 3. Подключить это к таргетам проекта одной функцией.
 
@@ -94,15 +94,27 @@ cmake --build build
 | Выключено | по умолчанию | Ничего |
 | Базовый | `-DENABLE_WARNINGS=ON` | `-Wall` и, по умолчанию, `-Werror` |
 | Extra | `-DEXTRA_WARNINGS=ON` | плюс `-Wextra -Wpedantic -Wformat -pedantic-errors` |
-| Paranoid | `-DPARANOID_WARNINGS=ON` или `-DOGENC_WARNINGS=ON` | плюс почти все `-W…` для вашей версии g++/clang++ |
+| Paranoid | `-DPARANOID_WARNINGS=ON` или `-DOGENC_WARNINGS=ON` | плюс каталог отдельных `-W…` (для g++-14.2 — 101 флаг, для clang++-21.1 — 85 флагов) |
 
 Замечания:
 
-- Каскад: `PARANOID_WARNINGS` включает `EXTRA_WARNINGS`, тот включает `ENABLE_WARNINGS`. До `-Werror` каскад не доходит.
+- Каскад: `PARANOID_WARNINGS` включает `EXTRA_WARNINGS`, тот включает `ENABLE_WARNINGS`.
 - `PARANOID_WARNINGS` и `OGENC_WARNINGS` — синонимы.
 - `OGENC_WERROR` по умолчанию ON, но `-Werror` ставится только при `ENABLE_WARNINGS`. Снять ошибки, оставив предупреждения: `-DOGENC_WERROR=OFF`. Чтобы предупреждений не было, выключите верхний включённый уровень, а не только `ENABLE_WARNINGS`.
 - Для субмодулей и сторонних библиотек см. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings).
 
+### Что добавляет paranoid сверх `-Wall` и Extra
+
+Предупреждения которые покрывают `-Wall`, `-Wextra`, `-Wpedantic`, `-Wformat` и `-pedantic-errors` в сгенерированный каталог не попадают. Генератор собирает остальные предупреждения, которые целевой компилятор принял при пробе. Это отдельные ключи вроде `-Wconversion`, `-Wshadow`, `-Wfloat-equal`, `-Wold-style-cast`, `-Wswitch-enum`.
+
+Таких ключей заметно больше, чем привычный набор из пяти флагов. Paranoid дописывает их к команде целиком, до точечных `ogenc_warning(… OFF)` в проекте:
+
+| Компилятор | Флагов в каталоге paranoid |
+|---|---|
+| g++ 14.2 | 101 |
+| clang++ 21.1 | 85 |
+
+Число — длина списка опций предупреждений `ogenc_warning_options` для этой версии. 
 Те же опции можно задать переменными окружения **до** первого конфигурирования CMake (если соответствующая CMake-переменная ещё не задана):
 
 ```bash
@@ -189,8 +201,6 @@ target_ogenc_warnings(app1)
 target_ogenc_warnings(app2)
 ```
 
-`TARGETS` в `update_ogenc` применяются только если включён `PARANOID_WARNINGS` (и до `target_ogenc_warnings`). `SOURCES` работают на любом уровне: `OFF` добавляет `-Wno-…` на указанные исходники.
-
 Можно смешивать с обычными флагами CMake:
 
 ```cmake
@@ -209,7 +219,17 @@ update_ogenc(
 target_ogenc_warnings(myapp)
 ```
 
-В одном вызове можно указать и цели, и файлы: один список `WARNINGS` попадает во все указанные области. Разные флаги для цели и для файла задаются двумя вызовами, как в примере выше.
+`TARGETS` и `SOURCES` глушат предупреждения по-разному, поэтому в примере один вызов ограничен paranoid, а второй срабатывает на любом уровне и не выбрасывает опцию из списка, например `-Wfloat-equal`, а добавляет `-Wno-float-equal`.
+
+`update_ogenc(TARGETS demo1…)` правит не этот набор, а копию каталога paranoid для одной цели (`demo1_warning_options`). `target_ogenc_warnings` читает её только при `PARANOID_WARNINGS`, и вызов должен стоять до `target_ogenc_warnings`. 
+
+`update_ogenc(SOURCES … OFF)` уровень не проверяет. Он пишет на файл `COMPILE_OPTIONS` со значением `-Wno-…`, и CMake добавляет его в любую сборку.
+
+
+ В примере `-Wno-float-equal` поэтому есть даже в release. Польза есть там, где предупреждение реально включено. `-Wfloat-equal` включает только paranoid, так что на Extra этот `-Wno-` просто висит в команде. Другое дело — ключ из Extra, например `-Wunused-parameter`: с цели его через `TARGETS` снять нельзя, с одного `.cpp` через `SOURCES` можно.
+
+Один вызов применяет один список `WARNINGS` и к целям, и к файлам. Разные флаги задаются двумя вызовами, как в примере.
+
 
 ---
 

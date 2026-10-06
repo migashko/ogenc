@@ -1,9 +1,5 @@
 -Wanalyzer-symbol-too-complex
--Wc++26-extensions
--Wcast-user-defined
--Welaborated-enum-base
 -Wflex-array-member-not-at-end
--Wglobal-module
 -Wnrvo
 -Wsuggest-attribute=returns_nonnull
 -Wtemplate-id-cdtor

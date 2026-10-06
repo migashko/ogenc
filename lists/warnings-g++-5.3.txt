@@ -1,4 +1,3 @@
--Wc++14-compat
 -Winvalid-pch
 -Wmissing-include-dirs
 -Wmultichar

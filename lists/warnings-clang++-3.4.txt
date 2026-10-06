@@ -5,14 +5,9 @@
 -Wcast-qual
 -Wconversion
 -Wctor-dtor-privacy
--Wdelete-non-virtual-dtor
 -Wdisabled-optimization
 -Weffc++
 -Wfloat-equal
--Wformat-nonliteral
--Wformat-security
--Wformat-y2k
--Winit-self
 -Winline
 -Wmissing-declarations
 -Wnon-virtual-dtor
@@ -21,7 +16,6 @@
 -Wpacked
 -Wpadded
 -Wredundant-decls
--Wreorder
 -Wshadow
 -Wsign-promo
 -Wstack-protector
@@ -30,4 +24,3 @@
 -Wsynth
 -Wsystem-headers
 -Wunused-macros
--Wwrite-strings

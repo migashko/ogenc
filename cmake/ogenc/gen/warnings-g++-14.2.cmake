@@ -1,9 +1,5 @@
 ogenc_warning(-Wanalyzer-symbol-too-complex "Warn if expressions are too complicated for the analyzer to fully track." ON)
-ogenc_warning(-Wc++26-extensions "Warn about C++26 constructs in code compiled with an older standard." ON)
-ogenc_warning(-Wcast-user-defined "Warn about a cast to reference type that does not use a related user-defined conversion function." ON)
-ogenc_warning(-Welaborated-enum-base "Warn if an additional enum-base is used in an elaborated-type-specifier." ON)
 ogenc_warning(-Wflex-array-member-not-at-end "Warn when a structure containing a C99 flexible array member as the last field is not at the end of another structure." ON)
-ogenc_warning(-Wglobal-module "Warn about the global module fragment not containing only preprocessing directives." ON)
 ogenc_warning(-Wnrvo "Warn if the named return value optimization is not performed although it is allowed." ON)
 ogenc_warning(-Wtemplate-id-cdtor "Warn about simple-template-id in a constructor or destructor." ON)
 

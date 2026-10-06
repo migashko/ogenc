@@ -1,2 +1,0 @@
--Wpessimizing-move
--Wredundant-move

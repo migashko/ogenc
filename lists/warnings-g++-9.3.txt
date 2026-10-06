@@ -1,2 +1,0 @@
--Wclass-conversion
--Winit-list-lifetime

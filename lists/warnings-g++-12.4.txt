@@ -6,9 +6,12 @@
 -Wbidi-chars=any
 -Wcatch-value=1
 -Wdangling-pointer=2
+-Wenum-compare
+-Wenum-conversion
 -Wframe-larger-than=16384
 -Wimplicit-fallthrough=3
 -Wlarger-than=262144
+-Wmissing-braces
 -Wnormalized=nfc
 -Wplacement-new=1
 -Wshift-overflow=1

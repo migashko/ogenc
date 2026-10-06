@@ -1,6 +1,3 @@
--Wchanges-meaning
--Wdangling-reference
 -Winvalid-constexpr
 -Winvalid-utf8
 -Woverloaded-virtual=2
--Wself-move

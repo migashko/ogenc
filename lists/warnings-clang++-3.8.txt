@@ -1,5 +1,3 @@
--Wc++11-compat
--Wc++14-compat
 -Wc++1z-compat
 -Wdate-time
 -Wdouble-promotion

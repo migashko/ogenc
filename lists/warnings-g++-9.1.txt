@@ -1,4 +1,1 @@
--Wdeprecated-copy
 -Wdeprecated-copy-dtor
--Wpessimizing-move
--Wredundant-move

@@ -66,6 +66,10 @@ do
     if [[ -f "${common_list_f}" ]]; then
       comm --check-order -23 "${tmp2_f}" "${common_list_f}" | awk '{print $1}' > "${tmp1_f}"
       cat "${common_list_f}" > "${tmp2_f}"
+    else
+      # Первый слой тоже только пересечение с новейшим списком, иначе
+      # флаг, который новый компилятор уже не принимает, остаётся у всех.
+      cp "${tmp2_f}" "${tmp1_f}"
     fi
     cat "${tmp1_f}" >> "${tmp2_f}"
     sort -u "${tmp2_f}" > "${common_list_f}"

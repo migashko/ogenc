@@ -1,4 +1,3 @@
--Wc++11-compat
 -Wduplicated-cond
 -Wfloat-conversion
 -Wmultiple-inheritance

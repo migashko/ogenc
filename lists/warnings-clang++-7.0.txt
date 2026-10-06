@@ -1,5 +1,4 @@
 -Wbad-function-cast
--Wc++17-compat
 -Wc++-compat
 -Wcomments
 -Werror-implicit-function-declaration
@@ -8,7 +7,6 @@
 -Wmissing-noreturn
 -Wmissing-prototypes
 -Wnested-externs
--Wnoexcept-type
 -Wold-style-definition
 -Wselector
 -Wshift-overflow
