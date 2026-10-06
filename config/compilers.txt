@@ -32,4 +32,3 @@
 /usr/bin/clang++
 /usr/bin/clang++-19
 /usr/bin/clang++-21
-

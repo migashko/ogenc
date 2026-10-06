@@ -25,16 +25,25 @@ gen_help_cmake() {
         | sed 's/"/`/g' \
         | awk '
             {
+                orig = $0
                 line = $0
                 sub(/^[ \t]+/, "", line)
+                split(line, f, /[ \t]+/)
 
-                n = split(line, f, /[ \t]+/)
+                # Новая опция в --help: флаг с малым отступом. Продолжение описания
+                # сильнее сдвинуто и может само начинаться с -Wfoo=.
+                is_new = (orig ~ /^[ \t]{0,3}-/)
 
-                if (f[1] ~ /^-/) {
+                if (is_new && f[1] ~ /^-/) {
                     if (prev != "") print prev
                     prev = line
                 } else if (prev != "") {
-                    prev = prev " " line
+                    # Перенос режет "stack-clash" на "stack-" / "clash".
+                    if (prev ~ /-$/) {
+                        prev = prev line
+                    } else {
+                        prev = prev " " line
+                    }
                 }
             }
             END { if (prev != "") print prev }
