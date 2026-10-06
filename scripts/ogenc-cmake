@@ -198,12 +198,13 @@ while IFS="" read -r comp; do
   [[ -n "${filter_comp}" && "${comp}" != "${filter_comp}" ]] && continue
   specific_f="${cmake_path}/${specific}-${comp}.cmake"
   compilerid=""
+  # Точное имя префикса: шаблон *g++* совпадает с clang++.
   if [[ "${comp}" == "apple-clang++" ]]; then
     compilerid="AppleClang"
-  elif [[ "${comp}" == *g++* ]]; then
-    compilerid="GNU"
-  elif [[ "${comp}" == *clang* ]]; then
+  elif [[ "${comp}" == "clang++" ]]; then
     compilerid="Clang"
+  elif [[ "${comp}" == "g++" ]]; then
+    compilerid="GNU"
   fi
   : > "${specific_f}"
   echo "if ( \"\${CMAKE_CXX_COMPILER_ID}\" STREQUAL \"${compilerid}\" )" >> "${specific_f}"
