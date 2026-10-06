@@ -18,8 +18,7 @@ ogenc_env(EXTRA_WARNINGS "Уровень Extra (-Wextra -Wpedantic …)" ON)
 ogenc_env(DISABLE_WARNINGS "Отключить предупреждения ogenc (игнорирует EXTRA_WARNINGS и PARANOID_WARNINGS)" OFF)
 ogenc_env(PARANOID_WARNINGS "Параноидальный уровень предупреждений" OFF)
 ogenc_env(OGENC_WARNINGS "Синоним PARANOID_WARNINGS" OFF)
-ogenc_env(PARANOID_OPTIMIZE "Параноидальный уровень оптимизаций" OFF)
-ogenc_env(OGENC_OPTIMIZE "Синоним PARANOID_OPTIMIZE" OFF)
+ogenc_env(OGENC_OPTIMIZE "Подключить каталог флагов оптимизации ogenc" OFF)
 ogenc_env(OGENC_WERROR "Трактовать предупреждения как ошибки (-Werror)" ON)
 # Рубильник родительского проекта: гнать paranoid и на зависимостях.
 # Сам ogenc дерево add_subdirectory() не обходит. Типичная обёртка:
@@ -40,11 +39,6 @@ if ( PARANOID_WARNINGS OR OGENC_WARNINGS )
   set(OGENC_WARNINGS ON)
 endif()
 
-if ( PARANOID_OPTIMIZE OR OGENC_OPTIMIZE )
-  set(PARANOID_OPTIMIZE ON)
-  set(OGENC_OPTIMIZE ON)
-endif()
-
 include(${CMAKE_CURRENT_LIST_DIR}/ogenc/ogenc-option.cmake)
 
 if ( PARANOID_WARNINGS )
@@ -52,7 +46,7 @@ if ( PARANOID_WARNINGS )
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/warnings-clang++.cmake)
 endif()
 
-if ( PARANOID_OPTIMIZE OR OGENC_OPTIMIZE )
+if ( OGENC_OPTIMIZE )
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/optimize-g++.cmake)
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/optimize-clang++.cmake)
 endif()

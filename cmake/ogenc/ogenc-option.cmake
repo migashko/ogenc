@@ -41,20 +41,15 @@ macro(ogenc_optimize wname)
 endmacro()
 
 function(update_ogenc)
-
-  if ( NOT PARANOID_WARNINGS )
-    return()
-  endif()
-  
   cmake_parse_arguments(args
     "ON;OFF;"
     ""
-    "TARGETS;WARNINGS;OPTIMIZE;"
+    "TARGETS;SOURCES;WARNINGS;OPTIMIZE;"
     ${ARGN}
   )
-  
+
   set(value ON)
-  
+
   if (args_ON AND args_OFF )
     message(FATAL_ERROR "Нельзя указывать ON и OFF одновременно")
   endif()
@@ -63,15 +58,31 @@ function(update_ogenc)
     set(value OFF)
   endif()
 
-  foreach(target ${args_TARGETS})
+  # Списки таргета собираются только в paranoid; SOURCES — всегда (-Wno- нужен и на Extra).
+  if ( PARANOID_WARNINGS )
+    foreach(target ${args_TARGETS})
+      foreach(opt ${args_WARNINGS})
+        ogenc_option( ${target} "warning" ${opt} ${value} )
+      endforeach()
+      set(${ogenc_option_return} ${${ogenc_option_return}} PARENT_SCOPE)
+      foreach(opt ${args_OPTIMIZE})
+        ogenc_option( ${target} "optimize" ${opt} ${value} )
+      endforeach()
+      set(${ogenc_option_return} ${${ogenc_option_return}} PARENT_SCOPE)
+    endforeach()
+  endif()
+
+  foreach(src ${args_SOURCES})
+    if ( NOT IS_ABSOLUTE "${src}" )
+      set(src "${CMAKE_CURRENT_SOURCE_DIR}/${src}")
+    endif()
     foreach(opt ${args_WARNINGS})
-      ogenc_option( ${target} "warning" ${opt} ${value} )
+      if ( value )
+        set(flag ${opt})
+      else()
+        string(REGEX REPLACE "^-W" "-Wno-" flag "${opt}")
+      endif()
+      set_property(SOURCE "${src}" APPEND PROPERTY COMPILE_OPTIONS "${flag}")
     endforeach()
-    # последнее возвращаемое значение — список опций таргета
-    set(${ogenc_option_return} ${${ogenc_option_return}} PARENT_SCOPE)
-    foreach(opt ${args_OPTIMIZE})
-      ogenc_option( ${target} "optimize" ${opt} ${value} )
-    endforeach()
-    set(${ogenc_option_return} ${${ogenc_option_return}} PARENT_SCOPE)
   endforeach()
 endfunction()

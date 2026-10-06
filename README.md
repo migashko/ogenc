@@ -36,8 +36,7 @@
 | `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
 | `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
 | `APOCALYPTIC_WARNINGS` | OFF | См. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings) |
-| `PARANOID_OPTIMIZE` | OFF | Подключить optimize-инфраструктуру ogenc |
-| `OGENC_OPTIMIZE` | OFF | Синоним / условие для `target_ogenc_optimize` |
+| `OGENC_OPTIMIZE` | OFF | Подключить каталог optimize; условие для `target_ogenc_optimize` |
 
 ## Краткий справочник функций
 
@@ -47,7 +46,7 @@
 | `target_ogenc_optimize(target)` | Навесить optimize-опции ogenc (если включены) |
 | `ogenc_warning(-Wflag ON\|OFF)` | Глобально включить/выключить предупреждение |
 | `ogenc_optimize(-fflag ON\|OFF)` | Глобально включить/выключить optimize-флаг |
-| `update_ogenc(TARGETS … WARNINGS/OPTIMIZE … ON\|OFF)` | То же для списка таргетов |
+| `update_ogenc(TARGETS/SOURCES … WARNINGS/OPTIMIZE … ON\|OFF)` | То же для таргетов и/или единиц трансляции |
 
 ---
 
@@ -134,13 +133,15 @@ ogenc_warning(-Wzero-as-null-pointer-constant OFF)
 add_executable(demo1 demo1.cpp demo1_target.cpp demo1_tu.cpp)
 set_target_properties(demo1 PROPERTIES CXX_STANDARD 11 CXX_EXTENSIONS OFF)
 
-# для цели (paranoid)
-update_ogenc(TARGETS demo1 WARNINGS -Wswitch-enum OFF)
+# для цели (paranoid) и для единицы трансляции (любой уровень)
+update_ogenc(
+  TARGETS demo1
+  SOURCES demo1_tu.cpp
+  WARNINGS -Wswitch-enum -Wfloat-equal
+  OFF
+)
 
 target_ogenc_warnings(demo1)
-
-# для единицы трансляции (любой уровень, обычный CMake)
-set_source_files_properties(demo1_tu.cpp PROPERTIES COMPILE_OPTIONS -Wno-float-equal)
 ```
 
 ---
@@ -179,7 +180,7 @@ target_ogenc_warnings(app1)
 target_ogenc_warnings(app2)
 ```
 
-`update_ogenc` работает только если включён `PARANOID_WARNINGS`.
+`TARGETS` в `update_ogenc` применяются только если включён `PARANOID_WARNINGS` (и до `target_ogenc_warnings`). `SOURCES` работают на любом уровне: `OFF` добавляет `-Wno-…` на указанные исходники.
 
 Можно смешивать с обычными флагами CMake:
 
@@ -190,12 +191,16 @@ target_compile_options(myapp PRIVATE -Wno-unused-parameter)
 
 ### Для одной единицы трансляции
 
-У ogenc нет отдельного API на файл: после `target_ogenc_warnings` добавьте `-Wno-…` на исходник.
-
 ```cmake
+update_ogenc(
+  SOURCES legacy.cpp
+  WARNINGS -Wfloat-equal
+  OFF
+)
 target_ogenc_warnings(myapp)
-set_source_files_properties(legacy.cpp PROPERTIES COMPILE_OPTIONS -Wno-float-equal)
 ```
+
+В одном вызове можно указать и цели, и файлы — список `WARNINGS` применяется к обеим областям.
 
 ---
 
@@ -215,11 +220,9 @@ target_ogenc_optimize(myapp)
 
 ```bash
 cmake -S . -B build -DOGENC_OPTIMIZE=ON
-# или
-cmake -S . -B build -DPARANOID_OPTIMIZE=ON
 ```
 
-По умолчанию отдельные optimize-флаги в сгенерированных файлах идут как **OFF** — то есть paranoid-optimize не включает «всё подряд автоматически», а даёт инфраструктуру `ogenc_optimize(...)` / `update_ogenc(... OPTIMIZE ...)`, чтобы точечно включать нужное:
+По умолчанию отдельные optimize-флаги в сгенерированных файлах идут как **OFF**. `OGENC_OPTIMIZE` не включает «всё подряд»: это каталог и API `ogenc_optimize(...)` / `update_ogenc(... OPTIMIZE ...)`, чтобы точечно включать нужное:
 
 ```cmake
 ogenc_optimize(-ffast-math ON)   # пример; конкретные имена смотрите в cmake/ogenc/gen/optimize-*.cmake

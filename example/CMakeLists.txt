@@ -10,17 +10,13 @@ ogenc_warning(-Wzero-as-null-pointer-constant OFF)
 add_executable(demo1 demo1.cpp demo1_target.cpp demo1_tu.cpp)
 set_target_properties(demo1 PROPERTIES CXX_STANDARD 11 CXX_EXTENSIONS OFF)
 
-# 2. Для цели: копия глобального списка минус указанные флаги.
-#    Работает только при PARANOID_WARNINGS=ON; до target_ogenc_warnings.
+# 2–3. Для цели (paranoid) и для единиц трансляции (любой уровень).
+#      Одни и те же WARNINGS применяются ко всем TARGETS и SOURCES.
 update_ogenc(
   TARGETS demo1
-  WARNINGS -Wswitch-enum
+  SOURCES demo1_tu.cpp
+  WARNINGS -Wswitch-enum -Wfloat-equal
   OFF
 )
 
 target_ogenc_warnings(demo1)
-
-# 3. Для единицы трансляции: обычный CMake, ogenc отдельного API не даёт.
-set_source_files_properties(demo1_tu.cpp PROPERTIES
-  COMPILE_OPTIONS -Wno-float-equal
-)
