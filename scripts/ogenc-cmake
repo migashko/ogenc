@@ -58,6 +58,63 @@ gen_help_cmake() {
         | sort -u > "${out}"
 }
 
+# Нет g++ --help: описания из уже сгенерированных cmake, недостающие флаги — с пустым текстом.
+gen_desc_from_existing() {
+    local kind="$1"
+    local out="$2"
+    local func="${kind%s}"
+    local found missing
+    found=$(mktemp)
+    missing=$(mktemp)
+
+    shopt -s nullglob
+    local files=( "${cmake_path}/${kind}-"*.cmake )
+    shopt -u nullglob
+    if (( ${#files[@]} > 0 )); then
+        awk -v func="${func}" '
+            $0 ~ "^ogenc_" func "\\(" {
+                line = $0
+                sub(/ (ON|OFF)\)$/, " ON)", line)
+                flag = line
+                sub(/^[^(]+\(/, "", flag)
+                sub(/ .*/, "", flag)
+                empty = (line ~ / "" ON\)$/)
+                if (!(flag in kept) || (was_empty[flag] && !empty)) {
+                    kept[flag] = line
+                    was_empty[flag] = empty ? 1 : 0
+                }
+            }
+            END {
+                for (f in kept) print kept[f]
+            }
+        ' "${files[@]}" | sort -u > "${found}"
+    else
+        : > "${found}"
+    fi
+
+    : > "${missing}"
+    shopt -s nullglob
+    local lists=( "${lists_all_path}/${kind}-"*.txt )
+    shopt -u nullglob
+    if (( ${#lists[@]} > 0 )); then
+        sort -u "${lists[@]}" | while IFS= read -r flag; do
+            [[ -z "${flag}" ]] && continue
+            if ! grep -qF "ogenc_${func}(${flag} \"" "${found}"; then
+                printf 'ogenc_%s(%s "" ON)\n' "${func}" "${flag}"
+            fi
+        done > "${missing}"
+    fi
+    sort -u "${found}" "${missing}" > "${out}"
+    rm -f "${found}" "${missing}"
+}
+
+generator_is_gxx() {
+    local base
+    [[ -n "${default_generator:-}" && -x "${default_generator}" ]] || return 1
+    base=$(basename "${default_generator}")
+    [[ "${base}" == g++ || "${base}" == g++-* ]]
+}
+
 if [[ -z "${1:-}" ]] || { [[ "$1" != "warnings" ]] && [[ "$1" != "optimize" ]]; }; then
   usage
   exit 1
@@ -65,8 +122,14 @@ fi
 specific=$1
 filter_comp="${2:-}"
 
-gen_help_cmake "${default_generator}" warnings  "${cache_path}/cmake-warnings-all.cmake"
-gen_help_cmake "${default_generator}" optimize  "${cache_path}/cmake-optimize-all.cmake"
+if generator_is_gxx; then
+  gen_help_cmake "${default_generator}" warnings  "${cache_path}/cmake-warnings-all.cmake"
+  gen_help_cmake "${default_generator}" optimize  "${cache_path}/cmake-optimize-all.cmake"
+else
+  log 0 "Нет g++ --help, описания ${specific} беру из cmake/ogenc/gen ..."
+  gen_desc_from_existing warnings "${cache_path}/cmake-warnings-all.cmake"
+  gen_desc_from_existing optimize "${cache_path}/cmake-optimize-all.cmake"
+fi
 
 shopt -s nullglob
 list_files=( "${lists_path}"/*.txt )
@@ -135,8 +198,13 @@ while IFS="" read -r comp; do
   [[ -n "${filter_comp}" && "${comp}" != "${filter_comp}" ]] && continue
   specific_f="${cmake_path}/${specific}-${comp}.cmake"
   compilerid=""
-  [[ "${comp}" == *g++* ]] && compilerid="GNU"
-  [[ "${comp}" == *clang* ]] && compilerid="Clang"
+  if [[ "${comp}" == "apple-clang++" ]]; then
+    compilerid="AppleClang"
+  elif [[ "${comp}" == *g++* ]]; then
+    compilerid="GNU"
+  elif [[ "${comp}" == *clang* ]]; then
+    compilerid="Clang"
+  fi
   : > "${specific_f}"
   echo "if ( \"\${CMAKE_CXX_COMPILER_ID}\" STREQUAL \"${compilerid}\" )" >> "${specific_f}"
 

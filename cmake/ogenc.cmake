@@ -20,14 +20,6 @@ ogenc_env(PARANOID_WARNINGS "Параноидальный уровень пре�
 ogenc_env(OGENC_WARNINGS "Синоним PARANOID_WARNINGS" OFF)
 ogenc_env(OGENC_OPTIMIZE "Подключить каталог флагов оптимизации ogenc" OFF)
 ogenc_env(OGENC_WERROR "Трактовать предупреждения как ошибки (-Werror)" ON)
-# Рубильник родительского проекта: гнать paranoid и на зависимостях.
-# Сам ogenc дерево add_subdirectory() не обходит. Типичная обёртка:
-#   if (NOT APOCALYPTIC_WARNINGS)
-#     set(PARANOID_WARNINGS OFF)
-#     set(OGENC_WARNINGS OFF)
-#   endif()
-#   add_subdirectory(...)
-# В обычном CI Apocalyptic выключен: чужой код остаётся на Extra/Wall.
 ogenc_env(APOCALYPTIC_WARNINGS "Включить PARANOID_WARNINGS (в т.ч. для зависимостей, через обёртку add_subdirectory)" OFF)
 
 if (APOCALYPTIC_WARNINGS)
@@ -44,11 +36,17 @@ include(${CMAKE_CURRENT_LIST_DIR}/ogenc/ogenc-option.cmake)
 if ( PARANOID_WARNINGS )
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/warnings-g++.cmake)
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/warnings-clang++.cmake)
+  if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/warnings-apple-clang++.cmake" )
+    include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/warnings-apple-clang++.cmake)
+  endif()
 endif()
 
 if ( OGENC_OPTIMIZE )
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/optimize-g++.cmake)
   include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/optimize-clang++.cmake)
+  if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/optimize-apple-clang++.cmake" )
+    include(${CMAKE_CURRENT_LIST_DIR}/ogenc/gen/optimize-apple-clang++.cmake)
+  endif()
 endif()
 
 function(target_ogenc_warnings target)  

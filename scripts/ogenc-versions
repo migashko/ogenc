@@ -33,9 +33,15 @@ fi
 
 headline=$("${current_compiler}" --version | head -1)
 compiler=$(basename "${current_compiler}")
-version=$(echo "${headline}" | grep -Eo "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+" | tail -1)
+if [[ "${headline}" == *"Apple clang"* ]]; then
+  # Номер Apple (16.0.0), не сборка clang-1600.0.26 в скобках.
+  prefix=apple-clang++
+  version=$(echo "${headline}" | grep -Eo "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+" | head -1)
+else
+  version=$(echo "${headline}" | grep -Eo "[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+" | tail -1)
+  prefix=${compiler%%-*}
+fi
 suffix=$(echo "${version}" | grep -Eo "[[:digit:]]+\.[[:digit:]]+")
-prefix=${compiler%%-*}
 display="${prefix}-${suffix}"
 
 case "${1:-}" in

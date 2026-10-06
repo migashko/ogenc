@@ -35,11 +35,32 @@ probe_dir="${cache_path}/probe"
 probe_err="${cache_path}/probe-stderr.txt"
 mkdir -p "${probe_dir}"
 
-# shellcheck disable=SC2086
-log 0 "Генерирую ${specific}: ${default_generator} ${generator_options} -Q --help=${specific} для ${current_compiler} ..."
+raw_from_help=0
+if [[ -n "${default_generator:-}" && -x "${default_generator}" ]]; then
+  gen_base=$(basename "${default_generator}")
+  if [[ "${gen_base}" == g++ || "${gen_base}" == g++-* ]]; then
+    raw_from_help=1
+  fi
+fi
 
-read -r -a gen_opts <<< "${generator_options}"
-"${default_generator}" "${gen_opts[@]}" -Q "--help=${specific}" | ogenc_grep -v "\[enabled\]" > "${raw_options_list_f}"
+if [[ "${raw_from_help}" == 1 ]]; then
+  # shellcheck disable=SC2086
+  log 0 "Генерирую ${specific}: ${default_generator} ${generator_options} -Q --help=${specific} для ${current_compiler} ..."
+  read -r -a gen_opts <<< "${generator_options}"
+  "${default_generator}" "${gen_opts[@]}" -Q "--help=${specific}" | ogenc_grep -v "\[enabled\]" > "${raw_options_list_f}"
+else
+  # clang, в том числе Apple clang, не понимает --help=warnings. Без g++
+  # пробуем флаги, которые уже есть в lists/all (это полные списки, не слои lists/).
+  log 0 "Генерирую ${specific} для ${current_compiler} из lists/all (нет g++ --help) ..."
+  shopt -s nullglob
+  known_lists=( "${lists_all_path}/${specific}-"*.txt )
+  shopt -u nullglob
+  if (( ${#known_lists[@]} > 0 )); then
+    sort -u "${known_lists[@]}" > "${raw_options_list_f}"
+  else
+    : > "${raw_options_list_f}"
+  fi
+fi
 : > "${all_options_list_f}"
 : > "${fail_options_list_f}"
 

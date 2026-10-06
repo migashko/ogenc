@@ -1,5 +1,7 @@
 # ogenc
 
+**ogenc** is a set of ready-made CMake files that enable a broad set of **g++** and **clang++** warnings matched to your compiler version. Add the `cmake/` directory to your project and call `target_ogenc_warnings` on your targets. The rest of this document is in Russian.
+
 **ogenc** — набор готовых CMake-файлов и утилит для включения максимально полного набора предупреждений (и опционально флагов оптимизации) компиляторов **g++** и **clang++**, с учётом версии компилятора.
 
 Идея простая:
@@ -285,6 +287,8 @@ warnings-g++-14.2.cmake
 | `config/ignored.txt` | Опции, которые **не попадают** в итоговые списки (уже покрыты уровнями Wall/Extra, мета-флаги и т.п.) |
 | `config/disabled.txt` | Опции, которые попадают в cmake как **OFF** по умолчанию (шумные/бесполезные) |
 | `config/enabled.txt` | Опции, которые принудительно остаются **ON** (даже если иначе попали бы под другую логику) |
+
+Путь к Apple clang пишется в `config/compilers.txt` как есть, даже если файл называется `clang++`.
 
 Типичный подход к `disabled.txt`: включить всё, что возможно, затем занести в disabled то, что на реальных проектах даёт только шум (`-Weffc++`, `-Wsystem-headers`, `-Wtemplates`, …).
 
