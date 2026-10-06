@@ -110,57 +110,6 @@ cmake -S . -B build
 
 ---
 
-## APOCALYPTIC_WARNINGS
-
-Для **своего** кода обычно включают `-DPARANOID_WARNINGS=ON`. Для **субмодулей и сторонних библиотек** полный paranoid часто избыточен: чужой код уже прогоняют в своём CI, а у вас он только раздувает лог и ломает сборку.
-
-Рекомендуемое поведение:
-
-1. По умолчанию перед `add_subdirectory` / подключением зависимости **выключать** `PARANOID_WARNINGS` (и `OGENC_WARNINGS`).
-2. Если нужно прогнать paranoid и по зависимостям — собрать с `-DAPOCALYPTIC_WARNINGS=ON`.
-
-Сам ogenc дерево `add_subdirectory` **не** обходит. `APOCALYPTIC_WARNINGS` только включает `PARANOID_WARNINGS` и служит сигналом для **вашей** обёртки.
-
-Пример:
-
-```cmake
-function(my_add_subdirectory)
-  cmake_parse_arguments(arg "WARNINGS" "PATH" "" ${ARGN})
-  if (NOT arg_PATH)
-    message(FATAL_ERROR "PATH is required")
-  endif()
-
-  # По умолчанию не тащим paranoid в чужой код.
-  # Apocalyptic — принудительно оставить paranoid и для субмодуля.
-  if (NOT APOCALYPTIC_WARNINGS AND NOT arg_WARNINGS)
-    set(PARANOID_WARNINGS OFF)
-    set(OGENC_WARNINGS OFF)
-  endif()
-
-  add_subdirectory("${PROJECT_SOURCE_DIR}/${arg_PATH}")
-endfunction()
-
-# обычная сборка: свой код с paranoid, зависимость — без
-my_add_subdirectory(PATH third_party/foo)
-
-# зависимость тоже под paranoid (например, разовый прогон)
-my_add_subdirectory(PATH third_party/foo WARNINGS)
-```
-
-Сборка:
-
-```bash
-# свой проект с paranoid; субмодули без (если обёртка как выше)
-cmake -S . -B build -DPARANOID_WARNINGS=ON
-
-# paranoid и для зависимостей
-cmake -S . -B build -DAPOCALYPTIC_WARNINGS=ON
-```
-
-`-DAPOCALYPTIC_WARNINGS=ON` сам по себе включает `PARANOID_WARNINGS` в корне; смысл флага — не отключать его в обёртках при подключении субмодулей.
-
----
-
 ## Пример из репозитория
 
 В корне:
@@ -396,3 +345,54 @@ scripts/                       # стадии конвейера (compilers, gen
 - Набор флагов — снимок возможностей установленных при генерации компиляторов; совсем новый major может потребовать `./ogenc`.
 - Некоторые флаги из `--help` компилятора намеренно игнорируются или выключены — см. `config/ignored.txt` и `config/disabled.txt`.
 - Paranoid-режим может требовать правок кода или точечных `-Wno-…`; это ожидаемо.
+
+---
+
+## APOCALYPTIC_WARNINGS
+
+Для **своего** кода обычно включают `-DPARANOID_WARNINGS=ON`. Для **субмодулей и сторонних библиотек** полный paranoid часто избыточен: чужой код уже прогоняют в своём CI, а у вас он только раздувает лог и ломает сборку.
+
+Рекомендуемое поведение:
+
+1. По умолчанию перед `add_subdirectory` / подключением зависимости **выключать** `PARANOID_WARNINGS` (и `OGENC_WARNINGS`).
+2. Если нужно прогнать paranoid и по зависимостям — собрать с `-DAPOCALYPTIC_WARNINGS=ON`.
+
+Сам ogenc дерево `add_subdirectory` **не** обходит. `APOCALYPTIC_WARNINGS` только включает `PARANOID_WARNINGS` и служит сигналом для **вашей** обёртки.
+
+Пример:
+
+```cmake
+function(my_add_subdirectory)
+  cmake_parse_arguments(arg "WARNINGS" "PATH" "" ${ARGN})
+  if (NOT arg_PATH)
+    message(FATAL_ERROR "PATH is required")
+  endif()
+
+  # По умолчанию не тащим paranoid в чужой код.
+  # Apocalyptic — принудительно оставить paranoid и для субмодуля.
+  if (NOT APOCALYPTIC_WARNINGS AND NOT arg_WARNINGS)
+    set(PARANOID_WARNINGS OFF)
+    set(OGENC_WARNINGS OFF)
+  endif()
+
+  add_subdirectory("${PROJECT_SOURCE_DIR}/${arg_PATH}")
+endfunction()
+
+# обычная сборка: свой код с paranoid, зависимость — без
+my_add_subdirectory(PATH third_party/foo)
+
+# зависимость тоже под paranoid (например, разовый прогон)
+my_add_subdirectory(PATH third_party/foo WARNINGS)
+```
+
+Сборка:
+
+```bash
+# свой проект с paranoid; субмодули без (если обёртка как выше)
+cmake -S . -B build -DPARANOID_WARNINGS=ON
+
+# paranoid и для зависимостей
+cmake -S . -B build -DAPOCALYPTIC_WARNINGS=ON
+```
+
+`-DAPOCALYPTIC_WARNINGS=ON` сам по себе включает `PARANOID_WARNINGS` в корне; смысл флага — не отключать его в обёртках при подключении субмодулей.
