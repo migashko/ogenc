@@ -28,10 +28,4 @@ ogenc_warning(-Wc++17-compat "Warn about C++ constructs whose meaning differs be
 ogenc_warning(-Wc++1z-compat "Same as -Wc++17-compat." OFF)
 ogenc_warning(-Wmissing-format-attribute "Same as -Wsuggest-attribute=format." OFF)
 ogenc_warning(-Wmissing-noreturn "Same as -Wsuggest-attribute=noreturn." OFF)
-ogenc_warning(-Wno-alloca-larger-than "Disable Walloca-larger-than= warning. Equivalent to Walloca-larger-than=<SIZE_MAX> or larger. Same as -Walloca- larger-than=." OFF)
-ogenc_warning(-Wno-alloc-size-larger-than "Disable Walloc-size-larger-than= warning. Equivalent to Walloc-size-larger-than=<SIZE_MAX> or larger. Same as" OFF)
-ogenc_warning(-Wno-frame-larger-than "Disable -Wframe-larger-than= warning. Equivalent to -Wframe-larger-than=<SIZE_MAX> or larger. Same as -Wframe- larger-than=." OFF)
-ogenc_warning(-Wno-larger-than "Disable -Wlarger-than= warning. Equivalent to -Wlarger-than=<SIZE_MAX> or larger. Same as -Wlarger-than=." OFF)
-ogenc_warning(-Wno-stack-usage "Disable Wstack-usage= warning. Equivalent to Wstack-usage=<SIZE_MAX> or larger. Same as -Wstack-usage=." OFF)
-ogenc_warning(-Wno-vla-larger-than "Disable Wvla-larger-than= warning. Equivalent to Wvla-larger-than=<SIZE_MAX> or larger. Same as -Wvla-larger- than=." OFF)
 

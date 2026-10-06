@@ -6,6 +6,5 @@
 -Wexceptions
 -Wlong-long
 -Wnarrowing
--Wno-frame-larger-than
 -Wshift-negative-value
 -Wvla

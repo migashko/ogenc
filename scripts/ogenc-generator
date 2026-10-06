@@ -48,6 +48,8 @@ do
   [[ -z "${opt_line}" ]] && continue
   opt=$(echo "${opt_line}" | awk '{print $1}')
   [[ "${opt}" == -* ]] || continue
+  # -Wno-… в --help — выключение диагностики (часто «=размер»), не само предупреждение.
+  [[ "${opt}" == -Wno-* ]] && continue
 
   if (
     cd "${probe_dir}"

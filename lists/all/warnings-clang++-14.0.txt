@@ -57,7 +57,6 @@
 -Wnarrowing
 -Wnested-externs
 -Wnoexcept-type
--Wno-frame-larger-than
 -Wnon-virtual-dtor
 -Wnull-dereference
 -Wobjc-root-class
