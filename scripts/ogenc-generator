@@ -24,7 +24,15 @@ specific=$1
 
 [[ -n "${2:-}" ]] && current_compiler="$2"
 [[ -n "${3:-}" ]] && default_generator="$3"
-[[ -n "${4:-}" ]] && generator_options="$4"
+# 4-й аргумент подменяет набор целиком. Иначе optimize не получает флаги
+# предупреждений: на --help=optimize они ничего не меняют.
+if [[ -n "${4:-}" ]]; then
+  generator_options="$4"
+elif [[ "${specific}" == "optimize" ]]; then
+  generator_options="${optimize_generator_options}"
+else
+  generator_options="${warnings_generator_options}"
+fi
 
 comp_name=$(ogenc-versions name "${current_compiler}")
 raw_options_list_f="${cache_path}/raw-${comp_name}-${specific}.txt"

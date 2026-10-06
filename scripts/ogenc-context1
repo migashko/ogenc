@@ -30,7 +30,8 @@ ignored_list_f="${config_path}/ignored.txt"
 available_compilers_f="${cache_path}/available_compilers.txt"
 default_generator_f="${cache_path}/default_generator.txt"
 prefix_list_f="${cache_path}/prefix-list.txt"
-generator_options="-Wall -Wextra -Wpedantic -Wformat --pedantic-errors -O3 -Ofast"
+warnings_generator_options="-Wall -Wextra -Wpedantic -Wformat --pedantic-errors -O3 -Ofast"
+optimize_generator_options="-O3 -Ofast"
 
 log()
 {
