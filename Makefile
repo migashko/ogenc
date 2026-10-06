@@ -1,12 +1,17 @@
 # Сборка примера (example/).
-default: 
+default:
 	mkdir -p ./build
 	cd build && cmake ..
 	cmake --build ./build
 
-disabled: 
+release:
 	mkdir -p ./build
-	cd build && cmake .. -DDISABLE_WARNINGS=ON
+	cd build && cmake .. -DCMAKE_BUILD_TYPE=Release
+	cmake --build ./build
+
+debug:
+	mkdir -p ./build
+	cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug -DENABLE_WARNINGS=ON
 	cmake --build ./build
 
 extra: 

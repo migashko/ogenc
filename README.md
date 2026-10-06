@@ -32,10 +32,10 @@
 
 | Опция | По умолчанию | Смысл |
 |---|---|---|
-| `DISABLE_WARNINGS` | OFF | Полностью отключить warnings от ogenc |
-| `OGENC_WERROR` | ON | Добавлять `-Werror` |
-| `EXTRA_WARNINGS` | ON | `-Wextra -Wpedantic -Wformat -pedantic-errors` |
-| `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
+| `ENABLE_WARNINGS` | OFF | `-Wall` |
+| `OGENC_WERROR` | ON | `-Werror`, только если включён `ENABLE_WARNINGS` |
+| `EXTRA_WARNINGS` | OFF | `-Wextra -Wpedantic -Wformat -pedantic-errors`; включает `ENABLE_WARNINGS` |
+| `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора; включает `EXTRA_WARNINGS` |
 | `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
 | `APOCALYPTIC_WARNINGS` | OFF | См. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings) |
 | `OGENC_OPTIMIZE` | OFF | Подключить каталог optimize; условие для `target_ogenc_optimize` |
@@ -81,7 +81,7 @@ cmake -S . -B build -DPARANOID_WARNINGS=ON
 cmake --build build
 ```
 
-Без `PARANOID_WARNINGS` ogenc всё равно даёт базовый набор (`-Wall`, при `OGENC_WERROR` ещё `-Werror`, при `EXTRA_WARNINGS` ещё `-Wextra` и pedantic), но **полный** список предупреждений из сгенерированных файлов включается только в paranoid-режиме.
+По умолчанию `target_ogenc_warnings` не добавляет флагов. Базовый уровень (`-DENABLE_WARNINGS=ON`) даёт `-Wall` и, пока `OGENC_WERROR` не выключен, `-Werror`. Extra добавляет `-Wextra` и pedantic. Полный список из сгенерированных файлов включается только в paranoid-режиме. Более строгий уровень включает предыдущие.
 
 ---
 
@@ -91,17 +91,16 @@ cmake --build build
 
 | Режим | Как включить | Что примерно добавляется |
 |---|---|---|
-| Выключено | `-DDISABLE_WARNINGS=ON` | Ничего |
-| Базовый | по умолчанию (`DISABLE_WARNINGS=OFF`) | `-Wall`, при `OGENC_WERROR` ещё `-Werror` |
-| Extra | `-DEXTRA_WARNINGS=ON` (по умолчанию **ON**) | плюс `-Wextra -Wpedantic -Wformat -pedantic-errors` |
+| Выключено | по умолчанию | Ничего |
+| Базовый | `-DENABLE_WARNINGS=ON` | `-Wall` и, по умолчанию, `-Werror` |
+| Extra | `-DEXTRA_WARNINGS=ON` | плюс `-Wextra -Wpedantic -Wformat -pedantic-errors` |
 | Paranoid | `-DPARANOID_WARNINGS=ON` или `-DOGENC_WARNINGS=ON` | плюс почти все `-W…` для вашей версии g++/clang++ |
 
 Замечания:
 
-- `EXTRA_WARNINGS` по умолчанию **включён**. Чтобы остаться только на `-Wall` (и `-Werror`, если не выключен), передайте `-DEXTRA_WARNINGS=OFF`.
+- Каскад: `PARANOID_WARNINGS` включает `EXTRA_WARNINGS`, тот включает `ENABLE_WARNINGS`. До `-Werror` каскад не доходит.
 - `PARANOID_WARNINGS` и `OGENC_WARNINGS` — синонимы.
-- `DISABLE_WARNINGS=ON` отключает всё, что навешивает `target_ogenc_warnings`, независимо от остальных флагов.
-- `-Werror` можно отключить: `-DOGENC_WERROR=OFF`.
+- `OGENC_WERROR` по умолчанию ON, но `-Werror` ставится только при `ENABLE_WARNINGS`. Снять ошибки, оставив предупреждения: `-DOGENC_WERROR=OFF`. Чтобы предупреждений не было, выключите верхний включённый уровень, а не только `ENABLE_WARNINGS`.
 - Для субмодулей и сторонних библиотек см. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings).
 
 Те же опции можно задать переменными окружения **до** первого конфигурирования CMake (если соответствующая CMake-переменная ещё не задана):
@@ -118,8 +117,10 @@ cmake -S . -B build
 В корне:
 
 ```bash
-make            # обычная сборка example/
-make extra      # EXTRA_WARNINGS
+make            # без предупреждений ogenc
+make release    # CMAKE_BUILD_TYPE=Release, без предупреждений ogenc
+make debug      # CMAKE_BUILD_TYPE=Debug и ENABLE_WARNINGS (-Wall, -Werror)
+make extra      # EXTRA_WARNINGS, а с ним -Wall и -Werror
 make paranoid   # PARANOID_WARNINGS
 make clean
 ```
@@ -135,11 +136,17 @@ ogenc_warning(-Wzero-as-null-pointer-constant OFF)
 add_executable(demo1 demo1.cpp demo1_target.cpp demo1_tu.cpp)
 set_target_properties(demo1 PROPERTIES CXX_STANDARD 11 CXX_EXTENSIONS OFF)
 
-# для цели (paranoid) и для единицы трансляции (любой уровень)
+# для всей цели (paranoid)
 update_ogenc(
   TARGETS demo1
+  WARNINGS -Wswitch-enum
+  OFF
+)
+
+# для одной единицы трансляции (любой уровень)
+update_ogenc(
   SOURCES demo1_tu.cpp
-  WARNINGS -Wswitch-enum -Wfloat-equal
+  WARNINGS -Wfloat-equal
   OFF
 )
 
@@ -202,7 +209,7 @@ update_ogenc(
 target_ogenc_warnings(myapp)
 ```
 
-В одном вызове можно указать и цели, и файлы — список `WARNINGS` применяется к обеим областям.
+В одном вызове можно указать и цели, и файлы: один список `WARNINGS` попадает во все указанные области. Разные флаги для цели и для файла задаются двумя вызовами, как в примере выше.
 
 ---
 
@@ -343,10 +350,10 @@ export VERBOSE=1
 ## Рекомендуемый рабочий процесс в своём проекте
 
 1. Подключить `ogenc.cmake` и вызвать `target_ogenc_warnings` на своих таргетах (не на чужих submodule, если не готовы их чинить).
-2. Сначала собрать с Extra (дефолт): `-Wall -Wextra -Wpedantic …`.
+2. Собрать с Extra: `-DEXTRA_WARNINGS=ON` даёт `-Wall -Wextra -Wpedantic …` и `-Werror`.
 3. Включить `-DPARANOID_WARNINGS=ON` и пройтись по новым предупреждениям.
 4. Точечно глушить шум через `ogenc_warning(… OFF)` / `update_ogenc` / `-Wno-…`, а не отключать paranoid целиком.
-5. Держать `-Werror` (по умолчанию через `OGENC_WERROR`) только если команда готова не копить предупреждения. Выключить: `-DOGENC_WERROR=OFF`.
+5. `-Werror` по умолчанию включён вместе с любым уровнем. Снять только его: `-DOGENC_WERROR=OFF`.
 
 Для библиотек с публичными заголовками учитывайте, что часть paranoid-флагов может быть агрессивной для API (`-Wabi*`, `-Wpadded` и т.п. — в upstream-репозитории они обычно в `disabled.txt`).
 
@@ -383,7 +390,7 @@ scripts/                       # стадии конвейера (compilers, gen
 
 Рекомендуемое поведение:
 
-1. По умолчанию перед `add_subdirectory` / подключением зависимости **выключать** `PARANOID_WARNINGS` (и `OGENC_WARNINGS`).
+1. По умолчанию перед `add_subdirectory` / подключением зависимости **выключать** `PARANOID_WARNINGS`, `OGENC_WARNINGS`, `EXTRA_WARNINGS`, `ENABLE_WARNINGS` и `OGENC_WERROR`. Иначе зависимость унаследует уровни родителя и его `-Werror`.
 2. Если нужно прогнать paranoid и по зависимостям — собрать с `-DAPOCALYPTIC_WARNINGS=ON`.
 
 Сам ogenc дерево `add_subdirectory` **не** обходит. `APOCALYPTIC_WARNINGS` только включает `PARANOID_WARNINGS` и служит сигналом для **вашей** обёртки.
@@ -402,6 +409,9 @@ function(my_add_subdirectory)
   if (NOT APOCALYPTIC_WARNINGS AND NOT arg_WARNINGS)
     set(PARANOID_WARNINGS OFF)
     set(OGENC_WARNINGS OFF)
+    set(EXTRA_WARNINGS OFF)
+    set(ENABLE_WARNINGS OFF)
+    set(OGENC_WERROR OFF)
   endif()
 
   add_subdirectory("${PROJECT_SOURCE_DIR}/${arg_PATH}")
@@ -424,4 +434,4 @@ cmake -S . -B build -DPARANOID_WARNINGS=ON
 cmake -S . -B build -DAPOCALYPTIC_WARNINGS=ON
 ```
 
-`-DAPOCALYPTIC_WARNINGS=ON` сам по себе включает `PARANOID_WARNINGS` в корне; смысл флага — не отключать его в обёртках при подключении субмодулей.
+`-DAPOCALYPTIC_WARNINGS=ON` сам по себе включает `PARANOID_WARNINGS` в корне, а каскад добирает Extra и `-Wall`. `-Werror` ставится отдельно: `OGENC_WERROR` по умолчанию ON. Смысл флага — не отключать paranoid в обёртках при подключении субмодулей.
