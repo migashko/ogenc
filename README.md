@@ -31,6 +31,7 @@
 | Опция | По умолчанию | Смысл |
 |---|---|---|
 | `DISABLE_WARNINGS` | OFF | Полностью отключить warnings от ogenc |
+| `OGENC_WERROR` | ON | Добавлять `-Werror` |
 | `EXTRA_WARNINGS` | ON | `-Wextra -Wpedantic -Wformat -pedantic-errors` |
 | `PARANOID_WARNINGS` | OFF | Полный набор `-W…` по версии компилятора |
 | `OGENC_WARNINGS` | OFF | Синоним `PARANOID_WARNINGS` |
@@ -79,7 +80,7 @@ cmake -S . -B build -DPARANOID_WARNINGS=ON
 cmake --build build
 ```
 
-Без `PARANOID_WARNINGS` ogenc всё равно даёт базовый набор (`-Werror -Wall`, при `EXTRA_WARNINGS` ещё `-Wextra` и pedantic), но **полный** список предупреждений из сгенерированных файлов включается только в paranoid-режиме.
+Без `PARANOID_WARNINGS` ogenc всё равно даёт базовый набор (`-Wall`, при `OGENC_WERROR` ещё `-Werror`, при `EXTRA_WARNINGS` ещё `-Wextra` и pedantic), но **полный** список предупреждений из сгенерированных файлов включается только в paranoid-режиме.
 
 ---
 
@@ -90,15 +91,16 @@ cmake --build build
 | Режим | Как включить | Что примерно добавляется |
 |---|---|---|
 | Выключено | `-DDISABLE_WARNINGS=ON` | Ничего |
-| Базовый | по умолчанию (`DISABLE_WARNINGS=OFF`) | `-Werror -Wall` |
+| Базовый | по умолчанию (`DISABLE_WARNINGS=OFF`) | `-Wall`, при `OGENC_WERROR` ещё `-Werror` |
 | Extra | `-DEXTRA_WARNINGS=ON` (по умолчанию **ON**) | плюс `-Wextra -Wpedantic -Wformat -pedantic-errors` |
 | Paranoid | `-DPARANOID_WARNINGS=ON` или `-DOGENC_WARNINGS=ON` | плюс почти все `-W…` для вашей версии g++/clang++ |
 
 Замечания:
 
-- `EXTRA_WARNINGS` по умолчанию **включён**. Чтобы остаться только на `-Werror -Wall`, передайте `-DEXTRA_WARNINGS=OFF`.
+- `EXTRA_WARNINGS` по умолчанию **включён**. Чтобы остаться только на `-Wall` (и `-Werror`, если не выключен), передайте `-DEXTRA_WARNINGS=OFF`.
 - `PARANOID_WARNINGS` и `OGENC_WARNINGS` — синонимы.
 - `DISABLE_WARNINGS=ON` отключает всё, что навешивает `target_ogenc_warnings`, независимо от остальных флагов.
+- `-Werror` можно отключить: `-DOGENC_WERROR=OFF`.
 - Для субмодулей и сторонних библиотек см. [APOCALYPTIC_WARNINGS](#apocalyptic_warnings).
 
 Те же опции можно задать переменными окружения **до** первого конфигурирования CMake (если соответствующая CMake-переменная ещё не задана):
@@ -121,13 +123,24 @@ make paranoid   # PARANOID_WARNINGS
 make clean
 ```
 
-Пример таргета — `example/demo1.cpp`, подключение в `example/CMakeLists.txt`:
+Пример таргета — `example/demo1.cpp` (+ `demo1_target.cpp`, `demo1_tu.cpp`). Подключение и три способа выключить предупреждение — в `example/CMakeLists.txt`:
 
 ```cmake
 include(../cmake/ogenc.cmake)
-add_executable(demo1 demo1.cpp)
+
+# глобально (все таргеты, paranoid)
+ogenc_warning(-Wzero-as-null-pointer-constant OFF)
+
+add_executable(demo1 demo1.cpp demo1_target.cpp demo1_tu.cpp)
 set_target_properties(demo1 PROPERTIES CXX_STANDARD 11 CXX_EXTENSIONS OFF)
+
+# для цели (paranoid)
+update_ogenc(TARGETS demo1 WARNINGS -Wswitch-enum OFF)
+
 target_ogenc_warnings(demo1)
+
+# для единицы трансляции (любой уровень, обычный CMake)
+set_source_files_properties(demo1_tu.cpp PROPERTIES COMPILE_OPTIONS -Wno-float-equal)
 ```
 
 ---
@@ -173,6 +186,15 @@ target_ogenc_warnings(app2)
 ```cmake
 target_ogenc_warnings(myapp)
 target_compile_options(myapp PRIVATE -Wno-unused-parameter)
+```
+
+### Для одной единицы трансляции
+
+У ogenc нет отдельного API на файл: после `target_ogenc_warnings` добавьте `-Wno-…` на исходник.
+
+```cmake
+target_ogenc_warnings(myapp)
+set_source_files_properties(legacy.cpp PROPERTIES COMPILE_OPTIONS -Wno-float-equal)
 ```
 
 ---
@@ -317,7 +339,7 @@ export VERBOSE=1
 2. Сначала собрать с Extra (дефолт): `-Wall -Wextra -Wpedantic …`.
 3. Включить `-DPARANOID_WARNINGS=ON` и пройтись по новым предупреждениям.
 4. Точечно глушить шум через `ogenc_warning(… OFF)` / `update_ogenc` / `-Wno-…`, а не отключать paranoid целиком.
-5. Держать `-Werror` (ogenc добавляет его в базовом режиме) только если команда готова не копить предупреждения.
+5. Держать `-Werror` (по умолчанию через `OGENC_WERROR`) только если команда готова не копить предупреждения. Выключить: `-DOGENC_WERROR=OFF`.
 
 Для библиотек с публичными заголовками учитывайте, что часть paranoid-флагов может быть агрессивной для API (`-Wabi*`, `-Wpadded` и т.п. — в upstream-репозитории они обычно в `disabled.txt`).
 
