@@ -8,7 +8,6 @@
 -Wdeprecated-copy-dtor
 -Winaccessible-base
 -Winvalid-offsetof
--Wlarger-than=<byte-size>
 -Wmismatched-tags
 -Wprotocol
 -Wshadow-ivar

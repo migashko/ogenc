@@ -1,1 +1,4 @@
+-flifetime-dse=2
+-flive-patching=inline-clone
+-ftree-parallelize-loops=1
 -funwind-tables

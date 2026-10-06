@@ -1,12 +1,21 @@
+ogenc_warning(-Wframe-larger-than=16384 "Warn if a function's stack frame requires in excess of <byte-size>." ON)
+ogenc_warning(-Wlarger-than=262144 "Warn if an object's size exceeds <byte-size>." ON)
+
 ogenc_warning(-Warray-bounds "Same as -Warray-bounds=1 (or, in negated form, -Warray-bounds=0)." ON)
 ogenc_warning(-Warray-parameter "Warn about mismatched declarations of array parameters and unsafe accesses to them. Same as -Warray-parameter=." ON)
 ogenc_warning(-Wc++23-extensions "Warn about C++23 constructs in code compiled with an older standard." ON)
 ogenc_warning(-Wc++26-extensions "Warn about C++26 constructs in code compiled with an older standard." ON)
+ogenc_warning(-Wcast-align "Warn about pointer casts which increase alignment." ON)
 ogenc_warning(-Welaborated-enum-base "Warn if an additional enum-base is used in an elaborated-type-specifier." ON)
 ogenc_warning(-Winvalid-constexpr "Warn when a function never produces a constant expression." ON)
 ogenc_warning(-Winvalid-utf8 "Warn about invalid UTF-8 characters." ON)
 ogenc_warning(-Wmissing-variable-declarations "Warn about global variables without previous declarations." ON)
 ogenc_warning(-Wself-move "Warn when a value is moved to itself with std::move." ON)
+ogenc_warning(-Wshadow "Warn when one variable shadows another. Same as -Wshadow=global." ON)
+ogenc_warning(-Wshadow "Warn when one variable shadows another. Same as -Wshadow=global." ON)
+ogenc_warning(-Wshadow "Warn when one variable shadows another. Same as -Wshadow=global." ON)
+ogenc_warning(-Wstrict-aliasing "Warn about code which might break strict aliasing rules." ON)
+ogenc_warning(-Wstrict-overflow=1 "Warn about optimizations that assume that signed overflow is undefined." ON)
 ogenc_warning(-Wunused-parameter "Warn when a function parameter is unused." ON)
 
 

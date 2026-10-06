@@ -1,7 +1,6 @@
 ogenc_optimize(-ffast-math "This option lacks documentation." OFF)
 ogenc_optimize(-fgraphite "Enable in and out of Graphite representation." OFF)
 ogenc_optimize(-fgraphite-identity "Enable Graphite Identity transformation." OFF)
-ogenc_optimize(-flive-patching "Same as -flive-patching=inline-clone." OFF)
 ogenc_optimize(-floop-nest-optimize "Enable the loop nest optimizer." OFF)
 ogenc_optimize(-floop-parallelize-all "Mark all loops as parallel." OFF)
 ogenc_optimize(-fmath-errno "Set errno after built-in math functions." OFF)

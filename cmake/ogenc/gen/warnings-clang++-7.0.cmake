@@ -3,7 +3,6 @@ ogenc_warning(-Wc++-compat "Warn about C constructs that are not in the common s
 ogenc_warning(-Wcomments "Synonym for -Wcomment. Same as -Wcomment." ON)
 ogenc_warning(-Werror-implicit-function-declaration "This switch is deprecated; use -Werror=implicit-function-declaration instead. Same as -Werror=." ON)
 ogenc_warning(-Wimplicit-fallthrough "Same as -Wimplicit-fallthrough=3 (or, in negated form, -Wimplicit-fallthrough=0)." ON)
-ogenc_warning(-Wlarger-than- "Same as -Wlarger-than=." ON)
 ogenc_warning(-Wmissing-prototypes "Warn about global functions without prototypes." ON)
 ogenc_warning(-Wnested-externs "Warn about `extern` declarations not at file scope." ON)
 ogenc_warning(-Wnoexcept-type "Warn if C++17 noexcept function type will change the mangled name of a symbol." ON)

@@ -1,3 +1,2 @@
--Wattribute-alias
 -Wclass-conversion
 -Winit-list-lifetime

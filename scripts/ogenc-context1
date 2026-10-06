@@ -53,7 +53,8 @@ ogenc_grep()
   }
 }
 
-# Строка g++ -Q --help: конкретный флаг вместо плейсхолдера <…> и обрубка -Wfoo-.
+# Строка g++ -Q --help: конкретный уровень (-Wfoo -> -Wfoo=1) и число у <…>.
+# Правая колонка с другим флагом (-Wcomments -> -Wcomment) левый токен не заменяет.
 # Одно слово (уже готовый список) проходит как есть.
 ogenc_concrete_flags()
 {
@@ -77,11 +78,19 @@ ogenc_concrete_flags()
     function is_flag(val) {
       return val ~ /^-[A-Za-z]/ || val ~ /^--/
     }
-    function consider(opt, val, name) {
+    function consider(opt, val, name, base) {
       if (opt !~ /^-/ || opt ~ /^-Wno-/) return
       if (is_flag(val)) {
-        from_flag[stem_of(val)] = 1
-        keep[val] = 1
+        name = placeholder_stem(opt)
+        base = (name != "" ? name : opt)
+        # -Warray-bounds -> -Warray-bounds=1, -Wfoo<0,2> -> -Wfoo=1
+        if (stem_of(val) == base && val != base) {
+          from_flag[base] = 1
+          keep[val] = 1
+          return
+        }
+        if (opt ~ /-$/ || opt ~ /[<[]/ || opt ~ /=$/) return
+        keep[opt] = 1
         return
       }
       name = placeholder_stem(opt)

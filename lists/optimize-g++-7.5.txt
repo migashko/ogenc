@@ -1,7 +1,6 @@
 -ffast-math
 -fgraphite
 -fgraphite-identity
--flive-patching
 -floop-nest-optimize
 -floop-parallelize-all
 -fmath-errno

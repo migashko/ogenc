@@ -68,26 +68,57 @@ norm_options_list_f="${cache_path}/norm-${comp_name}-${specific}.txt"
 ogenc_concrete_flags < "${raw_options_list_f}" \
   | ogenc_apply_enabled_values | sort -u > "${norm_options_list_f}"
 
+# Компилятор принял флаг: ненулевой код или любой stderr — отказ.
+option_accepted() {
+  local opt="$1"
+  if (
+    cd "${probe_dir}"
+    "${current_compiler}" "${opt}" "${scriptdir}/test.cpp" -Werror -o probe
+  ) >/dev/null 2>"${probe_err}"; then
+    [[ "$(wc -l < "${probe_err}" | tr -d ' ')" == "0" ]]
+    return
+  fi
+  return 1
+}
+
+# В help есть ровно этот токен (-Warray-bounds), а не -Warray-bounds=<0,2>.
+help_has_flag() {
+  local stem="$1"
+  awk -v s="${stem}" '
+    {
+      line = $0
+      sub(/^[ \t]+/, "", line)
+      if (line == "") next
+      split(line, f, /[ \t]+/)
+      if (f[1] == s) { found = 1; exit }
+    }
+    END { exit found ? 0 : 1 }
+  ' "${raw_options_list_f}"
+}
+
 while IFS="" read -r opt
 do
   [[ -z "${opt}" ]] && continue
   [[ "${opt}" == -* ]] || continue
   [[ "${opt}" == -Wno-* ]] && continue
 
-  if (
-    cd "${probe_dir}"
-    "${current_compiler}" "${opt}" "${scriptdir}/test.cpp" -Werror -o probe
-  ) >/dev/null 2>"${probe_err}"; then
-    if [[ "$(wc -l < "${probe_err}" | tr -d ' ')" == "0" ]]; then
-      log 2 "OK: ${opt}"
-      echo "${opt}" >> "${all_options_list_f}"
-    else
-      log 1 "ОШИБКА1 ${current_compiler}: ${opt}"
-      log 1 "$(cat "${probe_err}")"
-      echo "${opt}" >> "${fail_options_list_f}"
+  chosen=""
+  if option_accepted "${opt}"; then
+    chosen="${opt}"
+  elif [[ "${opt}" == *=* ]]; then
+    # clang не знает -Warray-bounds=1, но знает -Warray-bounds.
+    stem="${opt%%=*}"
+    if [[ -n "${stem}" && "${stem}" != "${opt}" ]] && help_has_flag "${stem}" && option_accepted "${stem}"; then
+      chosen="${stem}"
+      log 2 "OK: ${stem} (вместо ${opt})"
     fi
+  fi
+
+  if [[ -n "${chosen}" ]]; then
+    [[ "${chosen}" == "${opt}" ]] && log 2 "OK: ${opt}"
+    echo "${chosen}" >> "${all_options_list_f}"
   else
-    log 1 "ОШИБКА2 ${current_compiler}: ${opt}"
+    log 1 "ОШИБКА ${current_compiler}: ${opt}"
     echo "${opt}" >> "${fail_options_list_f}"
   fi
 done < "${norm_options_list_f}"

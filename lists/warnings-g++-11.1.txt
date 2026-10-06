@@ -1,4 +1,3 @@
--Warray-parameter
 -Wctad-maybe-unsupported
 -Wdeprecated-enum-enum-conversion
 -Wdeprecated-enum-float-conversion

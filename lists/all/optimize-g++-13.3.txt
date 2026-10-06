@@ -17,8 +17,9 @@
 -fira-loop-pressure
 -fisolate-erroneous-paths-attribute
 -fkeep-gc-roots-live
+-flifetime-dse=2
 -flimit-function-alignment
--flive-patching
+-flive-patching=inline-clone
 -flive-range-shrinkage
 -floop-nest-optimize
 -floop-parallelize-all
@@ -68,6 +69,7 @@
 -ftree-cselim
 -ftree-loop-if-convert
 -ftree-lrs
+-ftree-parallelize-loops=1
 -ftree-vectorize
 -funconstrained-commons
 -funreachable-traps

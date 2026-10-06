@@ -4,7 +4,6 @@
 -Wcomments
 -Werror-implicit-function-declaration
 -Wimplicit-fallthrough
--Wlarger-than-
 -Wmissing-format-attribute
 -Wmissing-noreturn
 -Wmissing-prototypes

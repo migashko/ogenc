@@ -1,2 +1,7 @@
+-Wcast-align
 -Wjump-misses-init
 -Wnrvo
+-Wshadow
+-Wshadow
+-Wshadow
+-Wstrict-aliasing

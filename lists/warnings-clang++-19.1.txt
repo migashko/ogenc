@@ -2,9 +2,17 @@
 -Warray-parameter
 -Wc++23-extensions
 -Wc++26-extensions
+-Wcast-align
 -Welaborated-enum-base
+-Wframe-larger-than=16384
 -Winvalid-constexpr
 -Winvalid-utf8
+-Wlarger-than=262144
 -Wmissing-variable-declarations
 -Wself-move
+-Wshadow
+-Wshadow
+-Wshadow
+-Wstrict-aliasing
+-Wstrict-overflow=1
 -Wunused-parameter

@@ -18,6 +18,7 @@
 -Wc++26-extensions
 -Wc++2a-compat
 -Wcast-align
+-Wcast-align
 -Wcast-qual
 -Wc++-compat
 -Wclass-conversion
@@ -42,6 +43,7 @@
 -Wexceptions
 -Wfloat-conversion
 -Wfloat-equal
+-Wframe-larger-than=16384
 -Wimplicit-fallthrough
 -Winaccessible-base
 -Winit-self
@@ -51,8 +53,7 @@
 -Winvalid-pch
 -Winvalid-utf8
 -Wjump-misses-init
--Wlarger-than-
--Wlarger-than=<byte-size>
+-Wlarger-than=262144
 -Wlong-long
 -Wmismatched-new-delete
 -Wmismatched-tags
@@ -85,6 +86,9 @@
 -Wselector
 -Wself-move
 -Wshadow
+-Wshadow
+-Wshadow
+-Wshadow
 -Wshadow-ivar
 -Wshift-negative-value
 -Wshift-overflow
@@ -92,7 +96,9 @@
 -Wsign-promo
 -Wstack-protector
 -Wstrict-aliasing
+-Wstrict-aliasing
 -Wstrict-overflow
+-Wstrict-overflow=1
 -Wstrict-prototypes
 -Wstrict-selector-match
 -Wsuggest-override

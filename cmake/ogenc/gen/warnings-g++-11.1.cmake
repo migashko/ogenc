@@ -1,4 +1,3 @@
-ogenc_warning(-Warray-parameter "Warn about mismatched declarations of array parameters and unsafe accesses to them. Same as -Warray-parameter=." ON)
 ogenc_warning(-Wctad-maybe-unsupported "Warn when performing class template argument deduction on a type with no deduction guides." ON)
 ogenc_warning(-Wdeprecated-enum-enum-conversion "Warn about deprecated arithmetic conversions on operands of enumeration types." ON)
 ogenc_warning(-Wdeprecated-enum-float-conversion "Warn about deprecated arithmetic conversions on operands where one is of enumeration type and the other is of a floating-point type." ON)
